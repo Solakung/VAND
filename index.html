@@ -2438,7 +2438,7 @@ async function loadHostedCards(){
 }
 async function loadHostedImgParts(){
  if(!location.protocol.startsWith("http"))return;
- const TOTAL=5;
+ const TOTAL=6;
  const missing=[];
  for(let i=1;i<=TOTAL;i++){if(!(await idbGet("imgPart:"+i)))missing.push(i)}
  if(!missing.length)return;
