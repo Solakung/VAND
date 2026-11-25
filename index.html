@@ -2327,7 +2327,8 @@ function faceHTML(c){
  $("#zcard").style.setProperty("--cc",col.trim());
  const st=[c.power!=null&&`Power ${c.power}`,c.crit!=null&&`Critical ${c.crit}`,c.shield!=null&&`Shield ${c.shield}`].filter(Boolean).join("</span><span>");
  const rawAbs=c.body.map(stripKw).filter(l=>/^\[(AUTO|ACT|CONT)\]/.test(l));
- const autoCnt=rawAbs.filter(l=>{const a=parseAbility(l);return a&&(a.auto||(a.kind==="CONT"&&(parseContAll(l).length||parseAura(l))))}).length;
+ const ENGINE_CONT=/Sentinel|cannot be chosen by your opponent|can intercept from the back row|Alchemagic|regarded as persona ride too|When this card would be rode upon|When this card would be called from deck|move or swap|battles all of|may have up to|number of cards in your damage zone for you to lose/i;
+ const autoCnt=rawAbs.filter(l=>{const a=parseAbility(l);return a&&(a.auto||(a.kind==="CONT"&&(parseContAll(l).length||parseAura(l)||ENGINE_CONT.test(l))))}).length;
  const abBadge=rawAbs.length?(autoCnt===rawAbs.length?` · ⚡ อัตโนมัติ ${autoCnt}/${rawAbs.length}`:` · 🛠 อัตโนมัติ ${autoCnt}/${rawAbs.length}`):"";
  const lines=c.body.filter(l=>!/^(Power|Critical|Shield)\b/.test(l)).flatMap(l=>l.split(" ◆").map((x,i)=>i?"・"+x:x));
  return `<div class="hd"><b>${esc(c.name)}</b><span class="gr">${c.grade==null?"–":"G"+c.grade}</span></div>
@@ -2618,6 +2619,113 @@ const EVENTS=[
  [/^When this unit is boosted$/i,()=>({t:["boosted"]})],
  [/^When your other unit attacks$/i,()=>({t:["otherAttack"]})],
  [/^When your vanguard is attacked$/i,()=>({t:["vgAttacked"]})],
+ [/^When this unit is attacked$/i,()=>({t:["attacked"]})],
+ [/^At the end of each turn$/i,()=>({t:["endEachTurn"]})],
+ [/^When your opponent's card(?: imprisoned in your Prison)? is placed on \(RC\)(?: from your Order Zone)?$/i,()=>({t:["oppPrisonPlaced"]})],
+ [/^When this unit is chosen by your vanguard's effect$/i,()=>({t:["chosenByVg"]})],
+ [/^When this unit's attack boosted by a Shadow Army token hits$/i,()=>({t:["hit"],boosterTok:"Shadow Army"})],
+ [/^At the end of the battle your "([^"]+)" attacked a vanguard$/i,m=>({t:["endAnyAtk"],attHas:m[1],tgt:"vg"})],
+ [/^At the end of the battle your "([^"]+)" attacked$/i,m=>({t:["endAnyAtk"],attHas:m[1]})],
+ [/^At the end of the battle this unit boosted a rear-guard$/i,()=>({t:["endboost"],boostedRg:true})],
+ [/^At the end of the battle your other rear-guard in the same column as this unit attacked$/i,()=>({t:["endAnyAtk"],col:true})],
+ [/^When your other units are placed on \(VC\) or \(RC\)$/i,()=>({t:["rgPlaced"],other:true})],
+ [/^When your other rear-guard is returned to hand$/i,()=>({t:["rgToHand"],other:true})],
+ [/^When your grade (\d) or greater vanguard with "([^"]+)" in its card name attacks$/i,m=>({t:["vgattack"],vgG:+m[1],vgHas:m[2]})],
+ [/^When this unit is chosen by the ability of your grade (\d) or greater vanguard with "([^"]+)" in its card name$/i,m=>({t:["chosenByVg"],vgG:+m[1],vgHas:m[2]})],
+ [/^When your unit with "([^"]+)" in its card name attacks$/i,m=>({t:["otherAttack"],attHas:m[1]})],
+ [/^When your Meteorite card is put into your order zone(?: other than from drop)?$/i,()=>({t:["setOrderPut"],meteorite:true})],
+ [/^When this unit is retired by the ability of your vanguard with "([^"]+)" in its card name$/i,m=>({t:["retire_rc"],vgHas:m[1]})],
+ [/^When this card is put into (?:the )?soul(?: from deck or \(RC\))?(?: by your card's ability)?(?: during your turn)?$/i,()=>({t:["rcToSoulTurn"]})],
+ [/^When your other (?:unit|rear-guard) is placed on \(RC\) from (?:the )?order zone(?: by your card's ability)?$/i,()=>({t:["rgPlaced"],other:true,fromZone:"order"})],
+ [/^When your other (?:unit|rear-guard) is placed on \(RC\) from (?:the )?bind zone$/i,()=>({t:["rgPlaced"],other:true,fromZone:"removed"})],
+ [/^When your other unit is placed on \(RC\) by (?:a card's ability|the ability of your vanguard with "([^"]+)" in its card name)$/i,m=>({t:["rgPlaced"],other:true,byAbility:true,vgHas:m[1]||null})],
+ [/^When your other unit in the same column as this unit is placed$/i,()=>({t:["rgPlaced"],other:true,col:true})],
+ [/^When this unit is rode upon by a grade (\d)$/i,m=>({t:["rode"],byGrade:+m[1]})],
+ [/^When this unit \[Stand\] by the ability of your vanguard with "([^"]+)"(?: or "([^"]+)")? in its card name$/i,()=>({t:["standed"]})],
+ [/^When your grade (\d) or greater vanguard with "([^"]+)" in its card name is attacked$/i,m=>({t:["vgAttacked"],vgG:+m[1],vgHas:m[2]})],
+ [/^When this unit is placed on your back row \(RC\)$/i,()=>({t:["place_rc"],onlyBack:true})],
+ [/^When this unit \[Stand\] by (?:your vanguard's|a card's) ability$/i,()=>({t:["standed"]})],
+ [/^When this unit is put on \(GC\) or placed on \(VC\) or \(RC\)$/i,()=>({t:["gc","place_vc","place_rc"]})],
+ [/^When your other rear-guard attacks$/i,()=>({t:["otherAttack"]})],
+ [/^At the end of the battle your unit attacked$/i,()=>({t:["endAnyAtk"]})],
+ [/^At the end of the battle this unit boosted "([^"]+)"$/i,m=>({t:["endboost"],boostedHas:m[1]})],
+ [/^When this unit is retired from \(RC\) by the ability of your vanguard with "([^"]+)" in its card name(?: during your turn)?$/i,m=>({t:["retire_rc"],vgHas:m[1]})],
+ [/^When this unit is placed on \(RC\) other than by the effect of "([^"]+)"$/i,()=>({t:["place_rc"]})],
+ [/^When the set order you played from your hand is put into your Order Zone$/i,()=>({t:["setOrderPut"]})],
+ [/^At the end of the battle your grade (\d) vanguard with "([^"]+)" in its card name attacked$/i,m=>({t:["endVgAtk"],vgHas:m[2]})],
+ [/^When your unit is placed on \(RC\) from drop$/i,()=>({t:["rgPlaced"],fromZone:"drop"})],
+ [/^When your other unit in the same column as this unit \[Stand\] from a card's effect$/i,()=>({t:["otherStand"],other:true,col:true})],
+ [/^When your other rear-guard is put into your soul by your vanguard's ability during your turn$/i,()=>({t:["rcToSoulByVg"]})],
+ [/^When your opponent's rear-guard is placed other than from hand$/i,()=>({t:["oppRgPlacedNotHand"]})],
+ [/^When a trigger unit is revealed for the drive check of the battle this unit attacked$/i,()=>({t:["drivetrig"]})],
+ [/^When your opponent's rear-guard in the same column as this unit is retired during your turn$/i,()=>({t:["oppRetire"],col:true})],
+ [/^When you \[Soul-Blast (\d+)\] or more cards at the same time for the cost of your vanguard's ability$/i,m=>({t:["sbVgBatch"],n:+m[1]})],
+ [/^When the set order you played from hand is put into the order zone$/i,()=>({t:["setOrderPut"]})],
+ [/^When this unit is placed on \(RC\) by your (?:card's|order card's) ability$/i,()=>({t:["place_rc"],byAbility:true})],
+ [/^When the "([^"]+)" on your \(VC\) attacks$/i,m=>({t:["vgattack"],vgName:m[1]})],
+ [/^When your other (?:grade (\d) or less )?rear-guard is retired by your card's ability$/i,()=>({t:["myRgRetired"],other:true})],
+ [/^When your opponent's rear-guard is placed by your Prison's ability$/i,()=>({t:["oppPrisonPlaced"]})],
+ [/^When your other (?:grade (\d) or less )?unit is placed on \(RC\) from deck$/i,m=>({t:["rgPlaced"],other:true,fromZone:"deck",srcGradeLE:m[1]?+m[1]:null})],
+ [/^When your other unit \[Stand\] by your card's ability$/i,()=>({t:["otherStand"],other:true})],
+ [/^When you play a grade (\d) or greater normal order$/i,m=>({t:["orderplayed"],g:+m[1]})],
+ [/^When this card is discarded from hand during your battle phase$/i,()=>({t:["discarded"],phase:"battle"})],
+ [/^When your other unit is placed by your card's ability$/i,()=>({t:["rgPlaced"],other:true,byAbility:true})],
+ [/^When you "Final Rush"$/i,()=>({t:["finalRush"]})],
+ [/^When this unit is placed on \(RC\) from drop during your turn$/i,()=>({t:["place_rc"],from:"drop",myTurn:true})],
+ [/^when you persona ride$/i,()=>({t:["personaRide"]})],
+ [/^When this card is put from hand or order zone into drop during your turn$/i,()=>({t:["discarded","orderDrop"],myTurn:true})],
+ [/^When this card is put into the order zone or discarded from hand for the cost of your vanguard's ability$/i,()=>({t:["orderput","discarded"]})],
+ [/^When any player's unit is placed on \(RC\) from your order zone during any player's main phase$/i,()=>({t:["oppPrisonPlaced","rgPlaced"]})],
+ [/^When your rear-guard is bound by this unit's effect$/i,()=>({t:["anyBound"]})],
+ [/^When you \[Soul-Blast (\d+)\] or more at the same time for the cost of your card's ability$/i,m=>({t:["sbVgBatch"],n:+m[1]})],
+ [/^When this unit is put into your soul from \(RC\) by the ability of your "([^"]+)"$/i,m=>({t:["rcToSoulByVg"],vgName:m[1]})],
+ [/^When your rear-guard is placed by a card's ability$/i,()=>({t:["rgPlaced"],byAbility:true})],
+ [/^When your vanguard is placed by riding from a grade (\d)$/i,m=>({t:["vgPlaced"],rodeFromG:+m[1]})],
+ [/^When this card's outerDress is retired from \(RC\) or \(GC\) during your opponent's turn$/i,()=>({t:["outerRetired"]})],
+ [/^When this unit attacks while not boosted$/i,()=>({t:["attack"]})],
+ [/^When your unit is attacked$/i,()=>({t:["attacked","vgAttacked"]})],
+ [/^When your unit boosts a vanguard$/i,()=>({t:["boost"],boostedVg:true})],
+ [/^When your opponent's rear-guard in the same column as this unit is retired by your card's ability$/i,()=>({t:["oppRetire"],col:true})],
+ [/^When this unit is placed on \(RC\) from hand during your main phase$/i,()=>({t:["place_rc"],from:"hand",phase:"main"})],
+ [/^When this unit is placed on \(RC\) from deck or hand$/i,()=>({t:["place_rc"]})],
+ [/^When your other rear-guard is retired during your opponent's turn$/i,()=>({t:["myRgRetired"],other:true})],
+ [/^When your vanguard with "([^"]+)" in its card name is attacked$/i,m=>({t:["vgAttacked"],vgHas:m[1]})],
+ [/^When your unit \[Stand\] by your card's ability$/i,()=>({t:["otherStand"]})],
+ [/^When your vanguard with \[Critical\] (\d+) or greater attacks$/i,()=>({t:["vgattack"]})],
+ [/^When this unit is retired from \(RC\) by (?:any|your) card's ability$/i,()=>({t:["retire_rc"]})],
+ [/^When your rear-guard attacks$/i,()=>({t:["otherAttack"]})],
+ [/^When your unit in the same column as this unit \[Stand\]$/i,()=>({t:["otherStand"],col:true})],
+ [/^When this unit is placed on \(RC\) from bind zone$/i,()=>({t:["place_rc"],from:"removed"})],
+ [/^When your (?:other )?(?:unit|rear-guard) is placed (?:on a \(RC\) |in the front row of )?(?:in )?the same column as this unit(?: during your turn)?$/i,()=>({t:["rgPlaced"],other:true,col:true})],
+ [/^At the end of the battle your back row center rear-guard attacked$/i,()=>({t:["endAnyAtk"]})],
+ [/^At the end of the battle this unit attacked while boosted$/i,()=>({t:["endatk"]})],
+ [/^When this unit is put from \(RC\) into your soul$/i,()=>({t:["rcToSoulTurn"]})],
+ [/^When your rear-guard is retired by a card's ability during your turn$/i,()=>({t:["myRgRetired"]})],
+ [/^When this unit boosts a \[Glitter\]$/i,()=>({t:["boost"]})],
+ [/^When this card is put into (?:your )?soul (?:by a card's ability during your turn|from deck)$/i,()=>({t:["rcToSoulTurn"]})],
+ [/^When this unit is placed on \(RC\) from deck by your vanguard's ability$/i,()=>({t:["place_rc"],from:"deck",byAbility:true})],
+ [/^When a set order you played from hand is put into the order zone$/i,()=>({t:["setOrderPut"]})],
+ [/^When your vanguard with "([^"]+)" in its card name is placed during your ride phase$/i,m=>({t:["vgPlaced"],vgHas:m[1]})],
+ [/^When your opponent's rear-guard is retired by your card's ability during your main phase$/i,()=>({t:["oppRetire"],phase:"main"})],
+ [/^When this unit boosts a vanguard with "([^"]+)" in its card name$/i,m=>({t:["boost"],boostedVg:true,boostedHas:m[1]})],
+ [/^When this unit's attack or the attack it boosted hits a vanguard$/i,()=>({t:["hit","boosthit"],tgt:"vg"})],
+ [/^When this unit's attack hits a grade (\d) or greater vanguard$/i,m=>({t:["hit"],tgt:"vg",tgtGrade:+m[1]})],
+ [/^When this unit boosts "([^"]+)"$/i,m=>({t:["boost"],boostedHas:m[1]})],
+ [/^When this card is placed on \(RC\) other than by a unit card's ability$/i,()=>({t:["place_rc"]})],
+ [/^When this unit is placed by riding from a grade (\d) with "([^"]+)" in its card name(?: during the ride phase)?$/i,m=>({t:["place_vc"],rodeFromG:+m[1],rodeFromHas:m[2]})],
+ [/^When this card is discarded from deck or hand during your turn$/i,()=>({t:["discarded"]})],
+ [/^When this unit attacks while boosted by "([^"]+)"$/i,()=>({t:["attack"]})],
+ [/^When this unit is put from \(RC\) or hand into soul by your vanguard's ability$/i,()=>({t:["rcToSoulByVg"]})],
+ [/^When this unit is placed on \(RC\) from soul by your vanguard's ability$/i,()=>({t:["place_rc"],from:"soul",byAbility:true})],
+ [/^When this unit boosts a grade (\d) or greater(?: card)?$/i,m=>({t:["boost"],boostGrade:+m[1]})],
+ [/^When this unit is rode upon by grade (\d) with "([^"]+)" in its card name$/i,m=>({t:["rode"],byGrade:+m[1],byHas:m[2]})],
+ [/^When your unit with the \[overDress\] ability attacks$/i,()=>({t:["otherAttack"]})],
+ [/^When your other unit attacks from the back row$/i,()=>({t:["otherAttack"],fromBack:true})],
+ [/^When your Shadow Army token is retired from \(RC\) during your turn$/i,()=>({t:["myRgRetired"]})],
+ [/^At the end of the battle that your drive check revealed a grade (\d)$/i,m=>({t:["endDriveGrade"],g:+m[1]})],
+ [/^When this unit is placed on \(VC\) by riding from "([^"]+)"$/i,m=>({t:["place_vc"],rodeFrom:m[1]})],
+ [/^When the unit Armed with this card is attacked$/i,()=>({t:["vgAttacked"]})],
+ [/^When this unit is placed on a front row \(RC\) from hand$/i,()=>({t:["place_rc"],from:"hand"})],
  [/^When this unit is unlocked(?: during your turn)?$/i,()=>({t:["unlocked"]})],
  [/^When any locked card is unlocked$/i,()=>({t:["anyUnlock"]})],
  [/^When your other unit is unlocked$/i,()=>({t:["otherUnlock"]})],
@@ -2665,7 +2773,170 @@ const EVENTS=[
 ];
 const CONDS=[
  [/^if you searched (?:your|the) deck$/i,()=>({t:"always"})],
- [/^if you (?:called it|put a card(?: from your hand)?)$/i,()=>({t:"didPrev"})],
+ [/^if you (?:called it|called|put a card(?: from your hand)?|put a card into your hand|put it on the bottom of your deck)$/i,()=>({t:"didPrev"})],
+ [/^if your back row has (\w+) or more grade (\d) or less rear-guards$/i,m=>({t:"backRgGradeLE",n:numOf(m[1]),g:+m[2]})],
+ [/^if your opponent has no units in the same column as this unit$/i,()=>({t:"oppColEmpty"})],
+ [/^if you have a "([^"]+)" or "([^"]+)" on your \(VC\) or \(RC\)$/i,m=>({t:"unitIsAny",names:[m[1],m[2]]})],
+ [/^if there are (\w+) or more units in front of this unit$/i,m=>({t:"frontUnitsGE",n:numOf(m[1])})],
+ [/^if there are (\w+) or more units$/i,m=>({t:"frontUnitsGE",n:numOf(m[1])})],
+ [/^if your opponent's attacking unit is not boosted$/i,()=>({t:"atkNotBoosted"})],
+ [/^if you have another grade (\d) in the same column as this unit$/i,m=>({t:"colOtherGrade",g:+m[1]})],
+ [/^if your and your opponent's vanguards have the same grade$/i,()=>({t:"vgSameGrade"})],
+ [/^if there are no other rear-guards$/i,()=>({t:"noOtherRgAll"})],
+ [/^if there are no other units in the same column as this unit$/i,()=>({t:"noOtherColAll"})],
+ [/^if you have (\w+) or less rear-guards$/i,m=>({t:"rgLE",n:numOf(m[1])})],
+ [/^if the number of cards in your damage zone is more than your opponent's$/i,()=>({t:"dmgMoreThanOpp"})],
+ [/^if you have (\w+) units$/i,m=>({t:"unitsEQ",n:numOf(m[1])})],
+ [/^if this unit is on \(RC\)$/i,()=>({t:"onRC"})],
+ [/^if you do not have a unit with "([^"]+)" in its card name$/i,m=>({t:"noUnitHas",s:m[1]})],
+ [/^if the boosted unit is \[Stand\]$/i,()=>({t:"boostedStand"})],
+ [/^if it it is Abyssal Dark Night instead$/i,()=>({t:"world",v:["Abyssal Dark Night"]})],
+ [/^if you did not ride this turn$/i,()=>({t:"notRodeTurn"})],
+ [/^if your soul has a card with "([^"]+)" in its card name$/i,m=>({t:"soulHasCount",n:1,s:m[1]})],
+ [/^if you have a (Noblesserose|Plant|Shadow Army|Momokke) token on your \(RC\)$/i,m=>({t:"hasToken",kind:m[1]})],
+ [/^if you have a grade (\d) vanguard with "([^"]+)" in its card name$/i,m=>({t:"vgGradeEQHas",g:+m[1],s:m[2]})],
+ [/^if it was not retired$/i,()=>({t:"ctxNotRetired"})],
+ [/^if your vanguard's \[Power\] is (\d+) or greater$/i,m=>({t:"vgPowGE",n:+m[1]})],
+ [/^if you (?:put a card into the soul|rode the card|put from your hand)$/i,()=>({t:"didPrev"})],
+ [/^if your Order Zone has "([^"]+)"$/i,m=>({t:"orderHasName",s:m[1]})],
+ [/^if you called it during your battle phase$/i,()=>({t:"isBattlePhase"})],
+ [/^if you have (\w+) or more normal units with "([^"]+)" in their card names$/i,m=>({t:"unitsHasGE",n:numOf(m[1]),s:m[2]})],
+ [/^if your opponent's drop has (\w+) or more cards$/i,m=>({t:"oppDropGE",n:numOf(m[1])})],
+ [/^if it has (\w+) or more cards$/i,m=>({t:"oppDropGE",n:numOf(m[1])})],
+ [/^if (\w+) or more are imprisoned$/i,m=>({t:"prisonGE",n:numOf(m[1])})],
+ [/^if you played an order card this turn$/i,()=>({t:"orderPlayed"})],
+ [/^if (?:you drew|it was imprisoned|you returned (?:\w+) or more cards|you returned (?:\w+) cards|it was put by your vanguard's ability)$/i,()=>({t:"didPrev"})],
+ [/^if it (?:is|was) the (first|second|third|fourth|fifth) battle of this turn$/i,m=>({t:"battleEQ",n:{first:1,second:2,third:3,fourth:4,fifth:5}[m[1].toLowerCase()]})],
+ [/^if the total number of attacks this turn is (\w+) or more$/i,m=>({t:"battleGE",n:numOf(m[1])})],
+ [/^if your damage zone has a face up card$/i,()=>({t:"dmgUpGE",n:1})],
+ [/^if this unit is \[Stand\]$/i,()=>({t:"selfStand"})],
+ [/^if your damage zone has (\w+) cards$/i,m=>({t:"dmgEQ",n:numOf(m[1])})],
+ [/^if (\w+) or more were retired$/i,m=>({t:"oppRetireGE",n:numOf(m[1])})],
+ [/^if you Alchemagic an order and played it or attacked a total of (\w+) or more times this turn$/i,m=>({t:"alchOrBattleGE",n:numOf(m[1])})],
+ [/^if you have one or more cards in your soul or on your \(RC\) with "([^"]+)" in their card names$/i,m=>({t:"soulOrRgHas",s:m[1]})],
+ [/^if your rear-guard did not \[Stand\] by a card's effect this turn$/i,()=>({t:"notRgStoodTurn"})],
+ [/^if your Strategy card was put into the order zone this turn$/i,()=>({t:"orderPlayed"})],
+ [/^if this unit is in the back row center column$/i,()=>({t:"isBC"})],
+ [/^if any player's rear-guard was retired this turn$/i,()=>({t:"anyRetireTurn"})],
+ [/^if the sum of the grades of set orders in your order zone is (\d+) or greater$/i,m=>({t:"orderSetGradeSumGE",n:+m[1]})],
+ [/^if it is (\d+) or greater$/i,m=>({t:"orderSetGradeSumGE",n:+m[1]})],
+ [/^if your vanguard is \[Stand\]$/i,()=>({t:"vgStand"})],
+ [/^if this unit was placed from deck$/i,()=>({t:"fromDeck"})],
+ [/^if you have a grade (\d) or greater \[Stand\] vanguard$/i,m=>({t:"vgGradeStand",g:+m[1]})],
+ [/^if you do not have a "([^"]+)" on your \(RC\)$/i,m=>({t:"noRgName",s:m[1]})],
+ [/^if your opponent's rear-guard was not retired this turn$/i,()=>({t:"oppRetireLE",n:0})],
+ [/^if (?:your Strategy card was put|you put a strategy card) from order zone into soul this turn$/i,()=>({t:"strategyToSoulTurn"})],
+ [/^if you (?:drew cards|put it into the soul|called two or more tokens|put one or more cards|put two cards|put a card into soul|chose a card|\[Stand\] two units)$/i,()=>({t:"didPrev"})],
+ [/^if you did not (?:put a card into your hand|call a card)$/i,()=>({t:"didNotPrev"})],
+ [/^if your vanguard's grade is greater than your opponent's vanguard(?:'s grade)?$/i,()=>({t:"vgHigher"})],
+ [/^if your opponent's vanguard's grade is greater than your vanguard's grade$/i,()=>({t:"vgLower"})],
+ [/^if your opponent's rear-guard was retired by the ability of your (?:vanguard|set order) this turn$/i,()=>({t:"oppRetireGE",n:1})],
+ [/^if there are (\w+) or more types of trigger icons in your bind zone$/i,m=>({t:"bindTrigTypesGE",n:numOf(m[1])})],
+ [/^if your opponent's card was imprisoned in your Prison this turn$/i,()=>({t:"prisonGE",n:1})],
+ [/^if this unit was placed on \(RC\) by a card's ability this turn$/i,()=>({t:"placedByAbility"})],
+ [/^if you have a vanguard with \[Critical\] (\d+) or greater$/i,m=>({t:"vgCritGE",n:+m[1]})],
+ [/^During the battle your vanguard attacked$/i,()=>({t:"vgAttackingNow"})],
+ [/^if your rear-guard was put into soul by the ability of your vanguard this turn$/i,()=>({t:"rcToSoulGE",n:1})],
+ [/^if your set order was put into drop from the order zone this turn$/i,()=>({t:"orderDropTurn"})],
+ [/^if the sum of your units' grades is (\d+) or greater$/i,m=>({t:"unitsGradeSumGE",n:+m[1]})],
+ [/^if the number of your rear-guards is greater than your opponent's by (\w+) or more$/i,m=>({t:"rgMoreThanOppBy",n:numOf(m[1])})],
+ [/^if your unit \[Stand\] by a card's ability this turn$/i,()=>({t:"anyUnitStoodTurn"})],
+ [/^if you have a vanguard with only$/i,()=>({t:"vgOnlyClan",cl:null})],
+ [/^if you have a vanguard with "([^"]+)" in its card name and only$/i,m=>({t:"vgHas",s:m[1]})],
+ [/^if you \[Soul-Blast (\d+)\] or more at the same time$/i,m=>({t:"sbVgBatchGE",n:+m[1]})],
+ [/^if you have (\w+) or more grade (\d) or less rear-guards in your back row$/i,m=>({t:"backRgGradeLE",n:numOf(m[1]),g:+m[2]})],
+ [/^if you have (?:other |(\w+) or more )grade (\d) or less rear-guards$/i,m=>({t:"rgGradeLE",n:m[1]?numOf(m[1]):1,g:+m[2]})],
+ [/^if it boosted a grade (\d) or greater vanguard$/i,m=>({t:"boostedVgGradeGE",g:+m[1]})],
+ [/^if you do not have other rear-guards$/i,()=>({t:"noOtherRg"})],
+ [/^During the battle this unit boosted a unit with "([^"]+)" in its card name$/i,m=>({t:"boostedHasNow",s:m[1]})],
+ [/^During the battle this unit boosted a unit with originalDress$/i,()=>({t:"boostedODNow"})],
+ [/^if you have (\w+) or more grade (\d) or greater units$/i,m=>({t:"unitsGradeGE",n:numOf(m[1]),g:+m[2]})],
+ [/^if your soul has a grade (\d) or greater card$/i,m=>({t:"soulGradeGE1",g:+m[1]})],
+ [/^if your other rear-guard was retired by your card's ability this turn$/i,()=>({t:"myRetireGE",n:1})],
+ [/^if your vanguard is being attacked$/i,()=>({t:"vgBeingAttacked"})],
+ [/^if your vanguard has only one clan$/i,()=>({t:"vgOnlyClan",cl:null})],
+ [/^if you have more rear-guards than your opponent$/i,()=>({t:"rgMoreThanOpp"})],
+ [/^if your unit was placed on \(RC\) from soul this turn$/i,()=>({t:"fromSoulGE",n:1})],
+ [/^if your vanguard is a grade (\d) or greater \[Glitter\]$/i,m=>({t:"vgGradeGlitter",g:+m[1]})],
+ [/^if you have another grade (\d) or greater unit in the same column as this unit$/i,m=>({t:"colOtherGradeGE",g:+m[1]})],
+ [/^if your soul does not have a "([^"]+)"$/i,m=>({t:"soulNoName",s:m[1]})],
+ [/^if this unit is in the center column$/i,()=>({t:"inCenterCol"})],
+ [/^if your opponent's bind zone has a card$/i,()=>({t:"oppBindGE",n:1})],
+ [/^if your bind zone has (\w+) or more trigger units$/i,m=>({t:"bindTrigGE",n:numOf(m[1])})],
+ [/^if you have "([^"]+)" on your \(RC\)$/i,m=>({t:"hasRgName",s:m[1]})],
+ [/^if your \(RC\) has a (Plant|Shadow Army|Momokke|Noblesserose) token$/i,m=>({t:"hasToken",kind:m[1]})],
+ [/^if you have a grade (\d) or greater vanguard with "([^"]+)" in its card name different from this card$/i,m=>({t:"vgGradeHas",n:+m[1],s:m[2]})],
+ [/^if your vanguard with "([^"]+)" in its card name was placed this turn$/i,m=>({t:"vgRodeHasTurn",s:m[1]})],
+ [/^if you (?:put two cards into your hand|armed a card|chose two cards|put three or more cards into drop|put a trigger unit from your hand)$/i,()=>({t:"didPrev"})],
+ [/^if you (?:could not move any units|did not remove a card)$/i,()=>({t:"didNotPrev"})],
+ [/^if you have (\w+) or more \[Stand\] units$/i,m=>({t:"standUnitsGE",n:numOf(m[1])})],
+ [/^if your Order Zone has no cards$/i,()=>({t:"orderLE",n:0})],
+ [/^if your soul has a "([^"]+)" and a "([^"]+)"$/i,m=>({t:"soulHasBoth",s1:m[1],s2:m[2]})],
+ [/^if you did not retire$/i,()=>({t:"ctxNotRetired"})],
+ [/^if "([^"]+)" is in your soul$/i,m=>({t:"soulHasName",s:m[1]})],
+ [/^During the battle this unit boosted "([^"]+)"$/i,m=>({t:"boostedHasNow",s:m[1]})],
+ [/^if you rode a grade (\d) or greater unit this turn$/i,()=>({t:"rodeG3ThisTurn"})],
+ [/^if your rear-guard was retired by your vanguard's ability this turn$/i,()=>({t:"myRetireGE",n:1})],
+ [/^if your soul has (\w+) or more grade (\d) cards with "([^"]+)" in their different card names$/i,m=>({t:"soulHasGradeDiff",n:numOf(m[1]),g:+m[2],s:m[3]})],
+ [/^if it is the (first|second|third|fourth|fifth) battle of that turn or more$/i,m=>({t:"battleGE",n:{first:1,second:2,third:3,fourth:4,fifth:5}[m[1].toLowerCase()]})],
+ [/^if your order zone has a Blue Storm Armada$/i,()=>({t:"orderRace",race:"Blue Storm Armada"})],
+ [/^if you did not \[Soul-Blast (\d+)\] or more cards at the same time for the cost of your card's ability this turn$/i,m=>({t:"notSbVgBatchGE",n:+m[1]})],
+ [/^if you \[Soul-Blast (\d+)\] or more cards at the same time for the cost of your card's ability this turn$/i,m=>({t:"sbVgBatchGE",n:+m[1]})],
+ [/^if your \(VC\) or soul has a card with "([^"]+)" in its card name$/i,m=>({t:"vcOrSoulHas",s:m[1]})],
+ [/^if you have a vanguard with original \[Power\] (\d+) or greater$/i,m=>({t:"vgOrigPowGE",n:+m[1]})],
+ [/^if your soul has (\w+) or more "([^"]+)"$/i,m=>({t:"soulHasCount",n:numOf(m[1]),s:m[2]})],
+ [/^if the number of your opponent's cards imprisoned in your Prison is (\w+) or less$/i,m=>({t:"prisonLE",n:numOf(m[1])})],
+ [/^if this unit is Armed with (\w+) or more cards$/i,m=>({t:"armsGE",n:numOf(m[1])})],
+ [/^if your vanguard is Armed$/i,()=>({t:"armsGE",n:1})],
+ [/^if your back row has (\w+) or more units$/i,m=>({t:"backRgGE",n:numOf(m[1])})],
+ [/^if you have a card with "([^"]+)" in its card name in your soul$/i,m=>({t:"soulHasCount",n:1,s:m[1]})],
+ [/^if you (?:put it into your hand|chose two cards for this effect)$/i,()=>({t:"didPrev"})],
+ [/^if your vanguard is placed this turn by riding from a unit with "([^"]+)" in its card name$/i,m=>({t:"rodeFromHasTurn",s:m[1]})],
+ [/^if a grade (\d) was revealed for your drive check this turn$/i,()=>({t:"always"})],
+ [/^if you chose a (?:grade \d (?:card|unit)|unit with "[^"]+" in its card name)$/i,()=>({t:"didPrev"})],
+ [/^if your other rear-guard with "([^"]+)" in its card name was placed by your unit's ability this turn$/i,()=>({t:"placedByAbility"})],
+ [/^if you called a grade (\d)$/i,m=>({t:"calledGrade",g:+m[1]})],
+ [/^if it is a unit card$/i,()=>({t:"lastIsUnit"})],
+ [/^if it is a grade (\d) or less unit card$/i,m=>({t:"lastIsUnitGradeLE",g:+m[1]})],
+ [/^if it is a normal unit$/i,()=>({t:"lastIsNormalUnit"})],
+ [/^if it isn't$/i,()=>({t:"lastCheckFalse"})],
+ [/^if it is not$/i,()=>({t:"lastCheckFalse"})],
+ [/^if you \[Rest\] (\w+) or less units for this cost$/i,m=>({t:"varCountLE",n:numOf(m[1])})],
+ [/^if your drop does not have a card with the same card name as that card$/i,()=>({t:"dropNoSameLast"})],
+ [/^if this ability was activated for the (\w+) time this turn$/i,m=>({t:"actCountEQ",n:{first:1,second:2,third:3,fourth:4}[m[1].toLowerCase()]||3})],
+ [/^if (\w+) or more rear-guards were retired for the cost of your card with "([^"]+)" in its card name this turn$/i,m=>({t:"blasterRetCostGE",n:numOf(m[1]),s:m[2]})],
+ [/^if the \[Soul-Charge\] card was a trigger unit$/i,()=>({t:"scWasTrig"})],
+ [/^if it was normal unit$/i,()=>({t:"scWasNormal"})],
+ [/^if you put a grade (\d) or greater card$/i,m=>({t:"putGradeGE",g:+m[1]})],
+ [/^if there are no cards in your soul with the same card name as the revealed card$/i,()=>({t:"soulNoSameLast"})],
+ [/^if your vanguard rode this turn by a card's effect$/i,()=>({t:"rodeByEffTurn"})],
+ [/^if the outerDress is "([^"]+)"$/i,m=>({t:"outerIs",s:m[1]})],
+ [/^if all of the cards \[Soul-Charge\] have different grades$/i,()=>({t:"scAllDiffGrades"})],
+ [/^if (?:this unit|it) gets \[Power\] \+(\d+) or more(?: by this effect)?$/i,m=>({t:"lastBuffPowGE",n:+m[1]})],
+ [/^if your soul does not have a card with the same grade as that card$/i,()=>({t:"soulNoSameGradeLast"})],
+ [/^if that battle's drive checks did not reveal a grade (\d)$/i,m=>({t:"driveNoGrade",g:+m[1]})],
+ [/^if your order zone has a card with the same card name as that card$/i,()=>({t:"orderHasSameLast"})],
+ [/^if they could not bind (\w+) cards$/i,m=>({t:"boundLT",n:numOf(m[1])})],
+ [/^if your opponent's rear-guard was not put into soul$/i,()=>({t:"oppRgNotToSoul"})],
+ [/^if your vanguard was not attacked this turn$/i,()=>({t:"vgNotAttackedTurn"})],
+ [/^if a \[Critical\] trigger was \[Soul-Charge\]$/i,()=>({t:"scHasTrig",trig:"Critical"})],
+ [/^During the battle this unit is attacked by your opponent's unit not in the same column as this unit$/i,()=>({t:"attackedNotSameCol"})],
+ [/^if a grade (\d) card was \[Soul-Charge\] by this effect$/i,m=>({t:"scHasGrade",g:+m[1]})],
+ [/^if it was placed by the ability of your vanguard with "([^"]+)" in its card name$/i,m=>({t:"placedByVgHas",s:m[1]})],
+ [/^if one or more of your opponent's cards this unit gets \[Power\] \+2000\/\[Shield\] \+5000$/i,()=>({t:"prisonGE",n:1})],
+ [/^if an attack hit your vanguard with "([^"]+)" in its card name this turn$/i,m=>({t:"vgHitByOppHas",s:m[1]})],
+ [/^if you would move or swap this unit during your main phase$/i,()=>({t:"isMainPhase"})],
+ [/^if this unit's Power@? was increased or decreased by a trigger effect this turn$/i,()=>({t:"trigModTurn"})],
+ [/^if all of the revealed cards not named "([^"]+)" have different card names$/i,m=>({t:"revDiffNamesExcl",s:m[1]})],
+ [/^if you chose "([^"]+)"$/i,m=>({t:"choseName",s:m[1]})],
+ [/^if you chose (\w+) or more cards with different card names$/i,m=>({t:"choseDiffNamesGE",n:numOf(m[1])})],
+ [/^if a trigger unit was bound$/i,()=>({t:"boundWasTrig"})],
+ [/^if you have a total of (\w+) or more rear-guards with the Friend ability or Powerful ability$/i,m=>({t:"rgKwCountGE",n:numOf(m[1]),kws:["Friend","Powerful"]})],
+ [/^if you have a vanguard with the (Friend|Powerful) ability(?: or (Powerful) ability)?$/i,m=>({t:"vgHasKw",kws:[m[1],m[2]].filter(Boolean)})],
+ [/^if you put a card with "([^"]+)" in its card name for this cost$/i,m=>({t:"costPutHas",s:m[1]})],
+ [/^if that card's original grade is (\d) or greater$/i,m=>({t:"lastOrigGradeGE",g:+m[1]})],
+ [/^if that called unit's grade is less than or equal to your vanguard$/i,()=>({t:"calledGradeLEVg"})],
+ [/^if your vanguard is in the UnisonDress state$/i,()=>({t:"vgHasKw",kws:["UnisonDress"]})],
  [/^if your order zone only has World cards$/i,()=>({t:"world",v:["Dark Night","Abyssal Dark Night"]})],
  [/^if it is Abyssal Dark Night(?: instead of Dark Night)?$/i,()=>({t:"world",v:["Abyssal Dark Night"]})],
  [/^During the battle (?:that )?this unit attacks$/i,()=>({t:"attacking"})],
@@ -2776,8 +3047,8 @@ const CONDS=[
  [/^if your soul has a "([^"]+)"$/i,m=>({t:"soulHasName",s:m[1]})],
  [/^if your soul has a grade (\d)$/i,m=>({t:"soulHasGrade",g:+m[1]})],
  [/^if you went second$/i,()=>({t:"second"})],
- [/^if you did not reveal a card$/i,()=>({t:"ask",text:"คุณไม่ได้เปิดเผยการ์ดใช่ไหม?"})],
- [/^if you revealed a card$/i,()=>({t:"ask",text:"คุณเปิดเผยการ์ดแล้วใช่ไหม?"})],
+ [/^if you did not reveal a card$/i,()=>({t:"didNotReveal"})],
+ [/^if you revealed a card$/i,()=>({t:"didReveal"})],
  [/^if you do$/i,()=>({t:"didPrev"})],
  [/^if you (?:drew|called) (?:a|this) cards?$/i,()=>({t:"didPrev"})],
  [/^if you unlocked a card$/i,()=>({t:"ctxUnlocked"})],
@@ -2968,6 +3239,15 @@ const COSTS=[
  [/^lock this unit$/i,()=>({t:"lockSelf"})],
  [/^retire (two|three) rear-guards$/i,m=>({t:"retireOther",n:numOf(m[1]),any:true})],
  [/^put (two|three) rear-guards into (?:your )?soul$/i,m=>({t:"rgToSoul",n:numOf(m[1])})],
+ [/^put (two|three) grade (\d) rear-guards into (?:your )?soul$/i,m=>({t:"rgGradeToSoul",n:numOf(m[1]),g:+m[2]})],
+ [/^put a grade (\d) or greater card from (?:your )?drop into (?:your )?soul$/i,m=>({t:"dropGradeToSoul",g:+m[1]})],
+ [/^bind one or more cards from (?:your )?soul$/i,()=>({t:"bindSoulVar"})],
+ [/^Rest (two|three) rear-guards with "([^"]+)" in their different card names$/i,m=>({t:"restNamedDiff",n:numOf(m[1]),has:m[2]})],
+ [/^put a rear-guard with "([^"]+)" in its card name into (?:your )?soul$/i,m=>({t:"rgHasToSoul",has:m[1]})],
+ [/^bind one other "([^"]+)" from (?:your )?soul(?: face up)?$/i,m=>({t:"bindSoulName",name:m[1]})],
+ [/^Put a card other than \[Heal\] trigger and \[Over\] trigger from drop on the bottom of the deck$/i,()=>({t:"dropNonHealOverBottom"})],
+ [/^put a normal unit with the same card name as any of your units from drop on the bottom of deck$/i,()=>({t:"dropSameUnitBottom"})],
+ [/^Soul-Blast$/i,()=>({t:"sb",n:1})],
 ];
 const STAT=/\[(Power|Shield|Critical)\] ?([+-]) ?(\d+)/gi;
 const METRICS=[
@@ -3043,7 +3323,6 @@ function parseStep0(c,opt,s){
  if(/^choose one of your opponent's rear-guards for each \[Counter-Blast\] paid for this cost$/i.test(s))return{t:"chooseVarOpp"};
  if(/^bind it face down$/i.test(s))return{t:"itTo",to:"removedDown"};
  if(/^choose five of your opponent's rear-guards with different grades from each other$/i.test(s))return{t:"gandeevaAct"};
- if(/^Reveal the top five cards of your deck$/i.test(s))return{t:"noop"};
  if(/^retire all of the chosen units with the same grades as the cards revealed$/i.test(s))return{t:"noop"};
  if(/^the cost of that unit's original \[ACT\] ability is reduced by \[Counter-Blast 1\]$/i.test(s))return{t:"actCBRed",n:1};
  if(/^all Plant tokens on your \(RC\) become plant gauges$/i.test(s))return{t:"granfiaPlantGauge"};
@@ -3054,7 +3333,6 @@ function parseStep0(c,opt,s){
  if(/^choose up to one of the units attached to this unit$/i.test(s))return{t:"silhouetteDetach"};
  if(/^move it to an open \(RC\) as \[Stand\]$/i.test(s))return{t:"noop"};
  if(/^you declare either normal unit or trigger unit$/i.test(s))return{t:"solraironDeclare"};
- if(/^reveal the top card of your deck$/i.test(s))return{t:"noop"};
  if(/^choose up to one normal unit from your hand$/i.test(s))return{t:"solraironTopDeck"};
  if(/^reveal it$/i.test(s))return{t:"noop"};
  if(/^put that revealed card on the top of your deck$/i.test(s))return{t:"noop"};
@@ -3314,6 +3592,9 @@ function parseAbility(line){
    const sub=parseAbility("[ACT]:"+cl.slice(i+1).join(", ").replace(/§COST(\d)§/g,"").trim());
    if(sub&&!sub.manualRest&&sub.steps.length&&!sub.hasAsk&&!sub.steps.some(x=>x.t==="cost")){r.steps.push({t:"later",when:/turn/i.test(c)?"turn":"battle",steps:sub.steps});break}
   }
+  const prevSt=r.steps[r.steps.length-1];
+  if(prevSt&&prevSt.t==="solraironDeclare"&&/^reveal the top card of your deck$/i.test(c))continue;
+  if(prevSt&&prevSt.t==="gandeevaAct"&&/^Reveal the top five cards of your deck$/i.test(c))continue;
   const st=parseStep(c);
   if(!st){r.manualRest=cl.slice(i).join(", ");break}
   started=true;
@@ -3421,7 +3702,7 @@ const actSide=()=>G?(isOnline()?mySide():(G.cfg.bots[G.turn]?0:G.turn)):0;
 function log(t){if(!t||!G)return;G.log.push(t);if(G.log.length>500)G.log.shift();const el=$("#plogList");if(el&&!$("#plog").hidden){el.innerHTML=G.log.slice(-100).map(x=>`<div>${esc(x)}</div>`).join("");el.scrollTop=1e9}}
 
 function mkPlayer(deck){
- const P={deck:shuf(expand(deck.main)),ride:expand(deck.ride),gz:expand(deck.g),hand:[],drop:[],soul:[],damage:[],order:[],removed:[],exile:[],guard:[],attached:[],scouted:[],ordersPlayed:0,persona:false,personaCount:0,personaRode:false,states:{},mk:{},battles:0,jail:[],arms:[],operated:false,extraArms:false,heart:[],alch:false,regalisUsed:false,vg3:false,oppRet:0,myRet:0,scTurn:0,ccTurn:0,boostCountTurn:0,botDeckTurn:false,rodeThisTurn:false,rodeFromG3:false,rodeG3ThisTurn:false,vgHitTurn:false,rgDrive:false,fightVgPow:0,fightVgCrit:0,crest:null,nullTrigIcons:false,shieldMinusTrigIcons:false,noBlitzTurn:false,atkBackRow:false,moveSameRow:false,actCBRed:0,attachedThisTurn:false,cantRide:false,fromSoulCountTurn:0,rcToSoulCountTurn:0,vermilionMulti:false,bindOnHit:false,noRgFrontPow:0,
+ const P={deck:shuf(expand(deck.main)),ride:expand(deck.ride),gz:expand(deck.g),hand:[],drop:[],soul:[],damage:[],order:[],removed:[],exile:[],guard:[],attached:[],scouted:[],ordersPlayed:0,persona:false,personaCount:0,personaRode:false,states:{},mk:{},battles:0,jail:[],arms:[],operated:false,extraArms:false,heart:[],alch:false,regalisUsed:false,vg3:false,oppRet:0,myRet:0,scTurn:0,ccTurn:0,boostCountTurn:0,botDeckTurn:false,rodeThisTurn:false,rodeFromG3:false,rodeG3ThisTurn:false,rodeByEffTurn:false,vgHitTurn:false,vgAttackedTurn:false,vgHitByOppTurn:false,blasterRetCost:0,rgDrive:false,fightVgPow:0,fightVgCrit:0,crest:null,nullTrigIcons:false,shieldMinusTrigIcons:false,noBlitzTurn:false,atkBackRow:false,moveSameRow:false,actCBRed:0,attachedThisTurn:false,cantRide:false,fromSoulCountTurn:0,rcToSoulCountTurn:0,vermilionMulti:false,bindOnHit:false,noRgFrontPow:0,
   c:{FL:null,VC:null,FR:null,BL:null,BC:null,BR:null}};
  P.ride.forEach(u=>u.fromRide=true);P.ride.sort((a,b)=>(cd(a).grade||0)-(cd(b).grade||0));P.gz.forEach(u=>u.down=true);
  let i=P.ride.findIndex(u=>cd(u).grade===0),v;
@@ -3633,6 +3914,113 @@ function condSync(c,ctx){
   case"atkOrBoostNow":return!!B&&(B.att===ctx.u||B.boost===ctx.u);
   case"boostedGradeNow":return!!B&&B.boost===ctx.u&&unitGrade(B.att)===c.g;
   case"didNotPrev":return!!ctx.declined;
+  case"backRgGradeLE":return units(s).filter(([k,x])=>BACK.includes(k)&&(cd(x).grade||0)<=c.g).length>=c.n;
+  case"oppColEmpty":{const c0=ctx.k?COLOF[ctx.k]:null;if(!c0)return false;const oc=({L:"R",R:"L",C:"C"})[c0];return !units(1-s).some(([k])=>COLOF[k]===oc)}
+  case"unitIsAny":return units(s).some(([,x])=>c.names.includes(cd(x).name));
+  case"frontUnitsGE":return !!ctx.k&&BACK.includes(ctx.k)&&units(s).filter(([k])=>FRONT.includes(k)).length>=c.n;
+  case"atkNotBoosted":return !!B&&!B.boost;
+  case"colOtherGrade":{const c0=ctx.k?COLOF[ctx.k]:null;return !!c0&&units(s).some(([k,x])=>x!==ctx.u&&COLOF[k]===c0&&unitGrade(x)===c.g)}
+  case"vgSameGrade":return vgGrade(s)===vgGrade(1-s);
+  case"noOtherRgAll":return units(s).filter(([k,x])=>k!=="VC"&&x!==ctx.u).length===0&&units(1-s).filter(([k])=>k!=="VC").length===0;
+  case"noOtherColAll":{const c0=ctx.k?COLOF[ctx.k]:null;if(!c0)return false;const oc=({L:"R",R:"L",C:"C"})[c0];return !units(s).some(([k,x])=>x!==ctx.u&&COLOF[k]===c0)&&!units(1-s).some(([k])=>COLOF[k]===oc)}
+  case"dmgMoreThanOpp":return P.damage.length>O.damage.length;
+  case"unitsEQ":return units(s).length===c.n;
+  case"onRC":return !!ctx.k&&ctx.k!=="VC";
+  case"noUnitHas":return !units(s).some(([,x])=>cd(x).name.includes(c.s));
+  case"boostedStand":return !!B&&!!B.att&&!B.att.rest;
+  case"notRodeTurn":return !P.rodeThisTurn;
+  case"hasToken":return units(s).some(([,x])=>x.no==="TK/"+c.kind);
+  case"vgGradeEQHas":return vgGrade(s)===c.g&&!!vg&&vg.name.includes(c.s);
+  case"vgPowGE":return !!P.c.VC&&unitPower(P.c.VC)>=c.n;
+  case"orderHasName":return P.order.some(x=>cd(x).name===c.s);
+  case"oppDropGE":return O.drop.length>=c.n;
+  case"dmgUpGE":return P.damage.filter(x=>!x.down).length>=c.n;
+  case"selfStand":return !!ctx.u&&!ctx.u.rest;
+  case"dmgEQ":return P.damage.length===c.n;
+  case"alchOrBattleGE":return !!P.alch||(P.battles||0)>=c.n;
+  case"soulOrRgHas":return P.soul.some(x=>cd(x).name.includes(c.s))||units(s).some(([k,x])=>k!=="VC"&&cd(x).name.includes(c.s));
+  case"notRgStoodTurn":return !units(s).some(([k,x])=>k!=="VC"&&x.stoodByEff);
+  case"isBC":return ctx.k==="BC";
+  case"anyRetireTurn":return (P.oppRet||0)>0||(P.myRet||0)>0;
+  case"orderSetGradeSumGE":return P.order.filter(x=>cd(x).type==="Set Order").reduce((t,x)=>t+(cd(x).grade||0),0)>=c.n;
+  case"vgStand":return !!P.c.VC&&!P.c.VC.rest;
+  case"fromDeck":return ctx.from==="deck";
+  case"vgGradeStand":return !!P.c.VC&&!P.c.VC.rest&&vgGrade(s)>=c.g;
+  case"noRgName":return !units(s).some(([k,x])=>k!=="VC"&&cd(x).name===c.s);
+  case"oppRetireLE":return (P.oppRet||0)<=c.n;
+  case"strategyToSoulTurn":return P.soul.some(x=>raceHas(x,"Strategy"));
+  case"vgHigher":return vgGrade(s)>vgGrade(1-s);
+  case"bindTrigTypesGE":return new Set(P.removed.map(x=>cd(x).trig).filter(Boolean)).size>=c.n;
+  case"vgCritGE":return !!P.c.VC&&unitCrit(P.c.VC)>=c.n;
+  case"vgAttackingNow":return !!B&&B.a===s&&B.ak==="VC";
+  case"orderDropTurn":return P.drop.some(x=>cd(x).type==="Set Order");
+  case"unitsGradeSumGE":return units(s).reduce((t,[,x])=>t+unitGrade(x),0)>=c.n;
+  case"rgMoreThanOppBy":return (units(s).filter(x=>x[0]!=="VC").length-units(1-s).filter(x=>x[0]!=="VC").length)>=c.n;
+  case"anyUnitStoodTurn":return units(s).some(([,x])=>x.stoodByEff);
+  case"rgGradeLE":return units(s).filter(([k,x])=>k!=="VC"&&x!==ctx.u&&(cd(x).grade||0)<=c.g).length>=c.n;
+  case"boostedVgGradeGE":return !!B&&B.boost===ctx.u&&B.ak==="VC"&&vgGrade(s)>=c.g;
+  case"noOtherRg":return units(s).filter(([k,x])=>k!=="VC"&&x!==ctx.u).length===0;
+  case"boostedHasNow":return !!B&&B.boost===ctx.u&&cd(B.att).name.includes(c.s);
+  case"boostedODNow":return !!B&&B.boost===ctx.u&&B.att.od&&B.att.od.length>0;
+  case"unitsGradeGE":return units(s).filter(([,x])=>unitGrade(x)>=c.g).length>=c.n;
+  case"soulGradeGE1":return P.soul.some(x=>(cd(x).grade||0)>=c.g);
+  case"vgBeingAttacked":return !!B&&B.d===s&&B.tk==="VC";
+  case"vgGradeGlitter":return vgGrade(s)>=c.g&&!!vg&&vg.body.some(l=>/^\[Glitter\]/.test(l));
+  case"colOtherGradeGE":{const c0=ctx.k?COLOF[ctx.k]:null;return !!c0&&units(s).some(([k,x])=>x!==ctx.u&&COLOF[k]===c0&&unitGrade(x)>=c.g)}
+  case"soulNoName":return !P.soul.some(x=>cd(x).name===c.s);
+  case"inCenterCol":return ctx.k==="VC"||ctx.k==="BC";
+  case"oppBindGE":return O.removed.length>=c.n;
+  case"bindTrigGE":return P.removed.filter(x=>!!cd(x).trig).length>=c.n;
+  case"hasRgName":return units(s).some(([k,x])=>k!=="VC"&&cd(x).name===c.s);
+  case"vgRodeHasTurn":return !!P.rodeThisTurn&&!!vg&&vg.name.includes(c.s);
+  case"standUnitsGE":return units(s).filter(([,x])=>!x.rest).length>=c.n;
+  case"orderLE":return P.order.length<=c.n;
+  case"soulHasGradeDiff":return new Set(P.soul.filter(x=>(cd(x).grade||0)===c.g&&cd(x).name.includes(c.s)).map(x=>cd(x).name)).size>=c.n;
+  case"orderRace":return P.order.some(x=>raceHas(x,c.race));
+  case"notSbVgBatchGE":return (P.maxVgSbTurn||0)<c.n;
+  case"vcOrSoulHas":return (!!vg&&vg.name.includes(c.s))||P.soul.some(x=>cd(x).name.includes(c.s));
+  case"vgOrigPowGE":return !!vg&&(vg.power||0)>=c.n;
+  case"rodeFromHasTurn":return !!P.rodeFromName&&P.rodeFromName.includes(c.s);
+  case"didReveal":return !!ctx.revealed;
+  case"didNotReveal":return !ctx.revealed;
+  case"calledGrade":return !!(ctx.calledCards&&ctx.calledCards.some(x=>unitGrade(x)===c.g));
+  case"lastIsUnit":{const x=ctx.lastPicked||(ctx.lookedCards&&ctx.lookedCards[0])||(ctx.it&&ctx.it[0]);const ok=!!x&&isUnit(x);ctx.lastCondRes=ok;return ok}
+  case"lastIsUnitGradeLE":{const x=ctx.lastPicked||(ctx.lookedCards&&ctx.lookedCards[0])||(ctx.it&&ctx.it[0]);const ok=!!x&&isUnit(x)&&(cd(x).grade||0)<=c.g;ctx.lastCondRes=ok;return ok}
+  case"lastIsNormalUnit":{const x=ctx.lastPicked||(ctx.lookedCards&&ctx.lookedCards[0])||(ctx.it&&ctx.it[0]);const ok=!!x&&cd(x).type==="Normal Unit";ctx.lastCondRes=ok;return ok}
+  case"lastCheckFalse":return ctx.lastCondRes===false;
+  case"varCountLE":return (ctx.varCount||0)<=c.n;
+  case"dropNoSameLast":{const x=ctx.lastPicked||ctx.revealedCard||(ctx.it&&ctx.it[0]);return !!x&&!P.drop.some(y=>cd(y).name===cd(x).name)}
+  case"actCountEQ":return !!(ctx.u&&ctx.u.actCount&&ctx.abIdx!=null&&ctx.u.actCount[ctx.abIdx]===c.n);
+  case"blasterRetCostGE":return (P.blasterRetCost||0)>=c.n;
+  case"scWasTrig":return !!(ctx.scCards&&ctx.scCards.some(x=>!!cd(x).trig));
+  case"scWasNormal":return !!(ctx.scCards&&ctx.scCards.some(x=>cd(x).type==="Normal Unit"));
+  case"putGradeGE":return !!(ctx.putCards&&ctx.putCards.some(x=>(cd(x).grade||0)>=c.g))||!!(ctx.pickedCards&&ctx.pickedCards.some(x=>(cd(x).grade||0)>=c.g));
+  case"soulNoSameLast":{const x=ctx.lastPicked||(ctx.lookedCards&&ctx.lookedCards[0])||ctx.revealedCard;return !!x&&!P.soul.some(y=>cd(y).name===cd(x).name)}
+  case"rodeByEffTurn":return !!P.rodeByEffTurn;
+  case"outerIs":return !!ctx.outer&&cd(ctx.outer).name===c.s;
+  case"scAllDiffGrades":{const sc=ctx.scCards||[];return sc.length>0&&new Set(sc.map(x=>cd(x).grade)).size===sc.length}
+  case"lastBuffPowGE":return (ctx.lastBuffPow||0)>=c.n;
+  case"soulNoSameGradeLast":{const x=ctx.lastPicked||(ctx.lookedCards&&ctx.lookedCards[0])||(ctx.it&&ctx.it[0]);return !!x&&!P.soul.some(y=>cd(y).grade===cd(x).grade)}
+  case"driveNoGrade":return !!B&&(B.driveGrades?!B.driveGrades.includes(c.g):B.driveMaxGrade<c.g);
+  case"orderHasSameLast":{const x=ctx.lastPicked||(ctx.lookedCards&&ctx.lookedCards[0])||(ctx.it&&ctx.it[0]);return !!x&&P.order.some(y=>cd(y).name===cd(x).name)}
+  case"boundLT":return (ctx.boundCards?ctx.boundCards.length:0)<c.n;
+  case"oppRgNotToSoul":return !(ctx.putCards&&ctx.putCards.some(x=>sideOfCard(x)===1-s));
+  case"vgNotAttackedTurn":return !P.vgAttackedTurn;
+  case"scHasTrig":return !!(ctx.scCards&&ctx.scCards.some(x=>cd(x).trig===c.trig));
+  case"attackedNotSameCol":{if(!B||B.tg!==ctx.u||!ctx.k)return false;const oc=({L:"R",R:"L",C:"C"})[COLOF[ctx.k]];return COLOF[B.ak]!==oc}
+  case"scHasGrade":return !!(ctx.scCards&&ctx.scCards.some(x=>(cd(x).grade||0)===c.g));
+  case"placedByVgHas":return !!ctx.ability&&!!vg&&vg.name.includes(c.s);
+  case"vgHitByOppHas":return !!P.vgHitByOppTurn&&!!vg&&vg.name.includes(c.s);
+  case"trigModTurn":return !!ctx.u&&!!ctx.u.trigModTurn;
+  case"revDiffNamesExcl":{const L=(ctx.pickedCards||ctx.lookedCards||[]).filter(x=>cd(x).name!==c.s);return new Set(L.map(x=>cd(x).name)).size===L.length}
+  case"choseName":return !!(ctx.it&&ctx.it.some(x=>cd(x).name===c.s))||!!(ctx.pickedCards&&ctx.pickedCards.some(x=>cd(x).name===c.s));
+  case"choseDiffNamesGE":{const L=ctx.it&&ctx.it.length?ctx.it:(ctx.pickedCards||[]);return new Set(L.map(x=>cd(x).name)).size>=c.n}
+  case"boundWasTrig":return !!(ctx.boundCards&&ctx.boundCards.some(x=>!!cd(x).trig))||!!(ctx.pickedCards&&ctx.pickedCards.some(x=>!!cd(x).trig));
+  case"rgKwCountGE":return units(s).filter(([k,x])=>k!=="VC"&&c.kws.some(kw=>cd(x).body.some(l=>l.includes(kw)))).length>=c.n;
+  case"vgHasKw":return !!vg&&c.kws.some(kw=>vg.body.some(l=>l.includes(kw)));
+  case"costPutHas":return !!(ctx.costPutCards&&ctx.costPutCards.some(x=>cd(x).name.includes(c.s)));
+  case"lastOrigGradeGE":{const x=ctx.lastPicked||(ctx.boundCards&&ctx.boundCards[0])||(ctx.it&&ctx.it[0]);const ok=!!x&&(cd(x).grade||0)>=c.g;ctx.lastCondRes=ok;return ok}
+  case"calledGradeLEVg":return !!(ctx.calledCards&&ctx.calledCards.some(x=>unitGrade(x)<=vgGrade(s)));
  }
  return null;
 }
@@ -3958,9 +4346,9 @@ async function playTurn(s){
  const dead=()=>G!==me||G.over;
  if(!bot)G.rem=[];
  P.vg3=vgGrade(s)>=3;P.alch=false;
- for(const t of[0,1])for(const[k,u]of units(t))u.used={};
+ for(const t of[0,1])for(const[k,u]of units(t)){u.used={};u.actCount={};u.trigModTurn=false}
  G.phase="stand";SFX.turn();pushFeed(s,"STAND / DRAW",`เทิร์น ${G.n}`);log(`— เทิร์น ${G.n}: ${SIDE[s]} —`);
- for(const[k,u]of units(s)){if(u.cantStand){u.cantStand=false;log(`${cd(u).name} ไม่สามารถสแตนด์ได้ในสแตนด์เฟสนี้!`)}else u.rest=false;u.stoodByEff=false;u.placedByAbility=false;u.attacksThisTurn=0}P.order.forEach(u=>u.rest=false);P.ordersPlayed=0;P.personaRode=false;P.personaCount=0;P.operated=false;P.extraArms=false;P.oppRet=0;P.myRet=0;P.scTurn=0;P.ccTurn=0;P.maxVgSbTurn=0;P.boostCountTurn=0;P.botDeckTurn=false;G.p[1-s].botDeckTurn=false;P.rodeThisTurn=false;P.rodeFromName=null;P.rodeFromG3=false;P.rodeG3ThisTurn=false;P.vgHitTurn=false;P.rgDrive=false;P.nullTrigIcons=false;P.shieldMinusTrigIcons=false;P.noBlitzTurn=false;P.atkBackRow=false;P.moveSameRow=false;P.actCBRed=0;P.attachedThisTurn=false;P.cantRide=false;P.fromSoulCountTurn=0;P.rcToSoulCountTurn=0;P.vermilionMulti=false;P.bindOnHit=false;P.noRgFrontPow=0;G.p[0].battles=0;G.p[1].battles=0;sweep();render();await pause(.7);if(dead())return;
+ for(const[k,u]of units(s)){if(u.cantStand){u.cantStand=false;log(`${cd(u).name} ไม่สามารถสแตนด์ได้ในสแตนด์เฟสนี้!`)}else u.rest=false;u.stoodByEff=false;u.placedByAbility=false;u.attacksThisTurn=0}P.order.forEach(u=>u.rest=false);P.ordersPlayed=0;P.personaRode=false;P.personaCount=0;P.operated=false;P.extraArms=false;P.oppRet=0;P.myRet=0;P.scTurn=0;P.ccTurn=0;P.maxVgSbTurn=0;P.boostCountTurn=0;P.botDeckTurn=false;G.p[1-s].botDeckTurn=false;P.rodeThisTurn=false;P.rodeFromName=null;P.rodeFromG3=false;P.rodeG3ThisTurn=false;P.rodeByEffTurn=false;P.vgHitTurn=false;P.vgAttackedTurn=false;P.vgHitByOppTurn=false;P.blasterRetCost=0;P.rgDrive=false;P.nullTrigIcons=false;P.shieldMinusTrigIcons=false;P.noBlitzTurn=false;P.atkBackRow=false;P.moveSameRow=false;P.actCBRed=0;P.attachedThisTurn=false;P.cantRide=false;P.fromSoulCountTurn=0;P.rcToSoulCountTurn=0;P.vermilionMulti=false;P.bindOnHit=false;P.noRgFrontPow=0;G.p[0].battles=0;G.p[1].battles=0;sweep();render();await pause(.7);if(dead())return;
  G.phase="draw";if(!draw(s,1))return;pushFeed(s,"DRAW 1",`${SIDE[s]}จั่วการ์ด`);log(`${SIDE[s]}จั่ว 1 ใบ`);render();await pause(.55);if(dead())return;
  G.phase="ride";showPhaseBanner("RIDE PHASE",`เทิร์น ${G.n} · ${SIDE[s]}`);render();
  await fireAll(s,"ridestart");if(dead())return;
@@ -3990,6 +4378,8 @@ async function playTurn(s){
  if(dead())return;
  G.phase="end";G.sel=null;G.mode=null;
  await fireAll(s,"endturn");if(dead())return;
+ await fireAll(s,"endEachTurn");if(dead())return;
+ await fireAll(1-s,"endEachTurn");if(dead())return;
  await runLaterTurn();if(dead())return;
  await unlockAll(s);if(dead())return;
  for(const[k,u]of units(s).slice())if(u.tempUnit){moveCard(u,"order");log(`${cd(u).name} กลับเข้าสู่โซนออเดอร์เมื่อจบเทิร์น`)}
@@ -4052,7 +4442,7 @@ async function doRide(s,u,from,disc,opts){
  if(from==="ride"&&disc){P.hand.splice(P.hand.indexOf(disc),1);P.drop.push(disc)}
  P.soul.push(old);resetUnit(old);resetUnit(u);P.c.VC=u;if(opts.rest)u.rest=true;
  for(const x of P.arms.slice()){const a=armSide(x);if(!a||a.name!==c.name)moveCard(x,"drop")}
- P.rodeThisTurn=true;P.rodeFromName=oc.name;if((oc.grade||0)===3)P.rodeFromG3=true;if((c.grade||0)>=3)P.rodeG3ThisTurn=true;
+ P.rodeThisTurn=true;if(opts.superior)P.rodeByEffTurn=true;P.rodeFromName=oc.name;if((oc.grade||0)===3)P.rodeFromG3=true;if((c.grade||0)>=3)P.rodeG3ThisTurn=true;
  pushFeed(s,persona?"PERSONA RIDE":"RIDE",c.name,u.no);log(`${SIDE[s]}ไรด์ ${c.name} (G${c.grade})${opts.superior?` ด้วยสกิล${opts.by==="revol"?" RevolDress":""}`:from==="ride"?` จากไรด์เด็ค ทิ้ง ${disc?cd(disc).name:"-"}`:" จากมือ"}`);
  if(persona){draw(s,1);P.persona=true;P.personaCount=(P.personaCount||0)+1;P.personaRode=true;if(G.stats)G.stats.persona[s]++;SFX.epic();showCutin("PERSONA RIDE!",`${c.name} · จั่ว 1 / แถวหน้า +10,000`,"persona");log(`${SIDE[s]} Persona Ride (x${P.personaCount}): จั่ว 1 ใบ ยูนิตแถวหน้า +10000 จนจบเทิร์น`)}else if(opts.by==="revol"){SFX.epic();const fm=/Zest/i.test(c.name)?"zest":/Gust/i.test(c.name)?"gust":/Tempest/i.test(c.name)?"tempest":"full";showArchFX("revol",{form:fm});showCutin("REVOLDRESS!",c.name,"revol")}else if(c.name.includes("Thegrea")&&oc.name.includes("Thegrea")){showArchFX("thegrea")}else if(c.name.includes("Masques")){SFX.epic();showCutin("MASQUES RIDE!",c.name,"masques")}else SFX.ride();
  render();await pause(.5);
@@ -4137,12 +4527,14 @@ function canCall(s,u,free){if(!isUnit(u))return false;if(free)return true;return
 async function doCall(s,u,circ,from){
  const P=G.p[s];if(circ==="VC")return false;
  const idx=P[from].indexOf(u);if(idx<0)return false;
+ if(from==="deck"&&cd(u).body.some(l=>/When this card would be called from deck to \(RC\), put it into hand/i.test(l))){moveCard(u,"hand");log(`${cd(u).name}: ถูกคอลจากเด็ค → นำขึ้นมือแทน!`);render();return true}
  const old=P.c[circ];if(old){log(`${cd(old).name} ถูกรีไทร์เพราะคอลทับ`);moveCard(old,"drop")}
  P[from].splice(idx,1);resetUnit(u);if(G.abd>0)u.placedByAbility=true;if(from==="soul")P.fromSoulCountTurn=(P.fromSoulCountTurn||0)+1;P.c[circ]=u;
  SFX.call();pushFeed(s,`CALL (${circ})`,cd(u).name,u.no);log(`${SIDE[s]}คอล ${cd(u).name} ที่ ${circ}`);render();
  await fire("place_rc",s,u,{where:"RC",k:circ,from,phase:G.phase});
  for(const[k,x]of units(s)){if(G.over)break;if(x!==u&&whereIs(x))await fire("rgPlaced",s,x,{where:k==="VC"?"VC":"RC",k,src:u,fromZone:from})}
  for(const x of P.soul.slice()){if(G.over)break;if(P.soul.includes(x))await fire("rgPlaced",s,x,{where:"Soul",src:u})}
+ if(from==="jail")for(const[k,x]of units(1-s)){if(G.over)break;if(whereIs(x))await fire("oppPrisonPlaced",1-s,x,{where:k==="VC"?"VC":"RC",k,src:u})}
  remind(s,u,"placeRC","RC");
  render();return true;
 }
@@ -4283,7 +4675,7 @@ async function doAttack(a,ak,tk,useBoost=true){
  G.busy=true;G.sel=null;
  const boost=useBoost?boosterOf(a,ak):null;
  att.rest=true;att.attacksThisTurn=(att.attacksThisTurn||0)+1;if(boost){boost.rest=true;PA.boostCountTurn=(PA.boostCountTurn||0)+1}PA.battles=(PA.battles||0)+1;if(G.stats)G.stats.atk[a]++;
- const B=G.battle={a,d,ak,tk,att,boost,tg,shield:0,trigZone:null,hit:null,noInt:false,guardMin:0,noHandGuard:false,noG1Guard:false,rgDriveThis:false,driveTrigs:0,driveMaxGrade:-1,later:[]};
+ if(tk==="VC")PD.vgAttackedTurn=true;const B=G.battle={a,d,ak,tk,att,boost,tg,shield:0,trigZone:null,hit:null,noInt:false,guardMin:0,noHandGuard:false,noG1Guard:false,rgDriveThis:false,driveTrigs:0,driveMaxGrade:-1,driveGrades:[],later:[]};
  const fin=()=>{for(const t of[0,1])for(const[k,u]of units(t)){u.bpw=0;u.bcr=0;u.bsh=0;u.nohit=false}PD.guard.forEach(u=>{resetUnit(u);PD.drop.push(u)});PD.guard=[];G.battle=null;G.busy=false;render()};
  SFX.attack();pushFeed(a,"ATTACK",`${cd(att).name} (${atkPower().toLocaleString()}) → ${cd(tg).name}`,att.no);log(`${SIDE[a]}: ${cd(att).name} (${atkPower()}) โจมตี ${cd(tg).name} (${unitPower(tg)})${boost?` บูสต์ด้วย ${cd(boost).name}`:""}`);
  render();await pause(.8);
@@ -4293,6 +4685,7 @@ async function doAttack(a,ak,tk,useBoost=true){
  if(ak==="VC")for(const[k,x]of units(a)){if(G.over)break;if(x!==att&&whereIs(x))await fire("vgattack",a,x,{where:"RC",k,tk,tg})}
  for(const[k,x]of units(a)){if(G.over)break;if(x!==att&&whereIs(x)){await fire("otherAttack",a,x,{where:k==="VC"?"VC":"RC",k,tk,tg});if(!G.over&&COLOF[k]===COLOF[ak]&&whereIs(x))await fire("colAttack",a,x,{where:k==="VC"?"VC":"RC",k,tk,tg})}}
  if(tk==="VC"&&!G.over&&whereIs(tg))await fire("vgAttacked",d,tg,{where:"VC",k:"VC"});
+ if(!G.over&&whereIs(tg))await fire("attacked",d,tg,{where:tk==="VC"?"VC":"RC",k:tk});
  if(boost&&!G.over&&whereIs(att))await fire("boosted",a,att,{where:ak==="VC"?"VC":"RC",k:ak,tk,tg});
  if(boost&&!G.over){await fire("boost",a,boost,{where:"RC",k:BACKOF[ak],tk,tg,boosted:att});remind(a,boost,"boost","RC")}
  if(G.over){fin();return}
@@ -4358,7 +4751,7 @@ async function doAttack(a,ak,tk,useBoost=true){
  if(anyHit&&!G.over){
   if(PA.c[ak]===att){await fire("hit",a,att,{where:ak==="VC"?"VC":"RC",k:ak,tk:hitVg?"VC":tk,tg});remind(a,att,"hit",ak==="VC"?"VC":"RC")}
   if(!G.over&&boost&&whereIs(boost))await fire("boosthit",a,boost,{where:"RC",tk:hitVg?"VC":tk,tg});
-  if(ak==="VC")PA.vgHitTurn=true;
+  if(ak==="VC")PA.vgHitTurn=true;if(hitVg)PD.vgHitByOppTurn=true;
   if(!G.over&&ak==="VC")for(const[k,x]of units(a)){if(G.over)break;if(x!==att&&whereIs(x))await fire("vgHit",a,x,{where:k==="VC"?"VC":"RC",k,tk:hitVg?"VC":tk,tg})}
  }
  if(G.over){fin();return}
@@ -4406,8 +4799,8 @@ async function applyTrigger(s,u,fromDrive,atk,revealed=false){
   else log("ฮีลไม่ได้ (ดาเมจน้อยกว่าอีกฝ่าย)");
  }
  if(t==="Over"){u.removed=true;P.exile.push(u);queueFx(s,"VC","remove");draw(s,1);log(`Over: การ์ดถูก Remove ออกจากเกม จั่ว 1 ใบ`)}
- if(t==="Front"){for(const[k,x]of units(s))if(FRONT.includes(k))x.pw+=pw;log(`ยูนิตแถวหน้าทั้งหมด +${pw}`)}
- else{for(let ti=0;ti<times;ti++){const x=await pick(`ทริกเกอร์ ${t} (${ti+1}/${times}): เลือกยูนิตที่ได้พลัง +${pw}`);if(x){x.pw+=pw;log(`${cd(x).name} +${pw}`)}}}
+ if(t==="Front"){for(const[k,x]of units(s))if(FRONT.includes(k)){x.pw+=pw;x.trigModTurn=true}log(`ยูนิตแถวหน้าทั้งหมด +${pw}`)}
+ else{for(let ti=0;ti<times;ti++){const x=await pick(`ทริกเกอร์ ${t} (${ti+1}/${times}): เลือกยูนิตที่ได้พลัง +${pw}`);if(x){x.pw+=pw;x.trigModTurn=true;log(`${cd(x).name} +${pw}`)}}}
  if(t==="Over"&&fromDrive&&!G.over){
   const ae=c.body.find(l=>/^Additional Effect/i.test(l))||"";
   if(/Olbaria/i.test(c.name)){const x=await pick("Over Additional (Olbaria): เลือกยูนิตที่ได้พลัง +100,000,000");if(x){x.pw+=100000000;log(`Over Additional (Olbaria): ${cd(x).name} +100,000,000!`)}}else if(/Dragveda/i.test(c.name)){if(P.c.VC){P.c.VC.rest=false;log(`Over Additional: สแตนด์แวนการ์ด ${cd(P.c.VC).name}!`)}}
@@ -4466,7 +4859,7 @@ async function driveCheck(s,att,idx=1,tot=1){
  const P=G.p[s];if(!P.deck.length){end(1-s,`${SIDE[s]}ไม่มีการ์ดในเด็ค`);return}
  const u=P.deck.shift(),c=cd(u);log(`${SIDE[s]}ไดรฟ์เช็ค (${idx}/${tot}): ${c.name}`);
  const prev=G.battle?(G.battle.driveCards=G.battle.driveCards||[]).slice():[];
- if(G.battle){if(c.trig)G.battle.driveTrigs++;if((c.grade||0)>G.battle.driveMaxGrade)G.battle.driveMaxGrade=c.grade||0;G.battle.driveCards.push(u)}
+ if(G.battle){if(c.trig)G.battle.driveTrigs++;if((c.grade||0)>G.battle.driveMaxGrade)G.battle.driveMaxGrade=c.grade||0;(G.battle.driveGrades=G.battle.driveGrades||[]).push(c.grade||0);G.battle.driveCards.push(u)}
  G.battle.trigZone=u;G.battle.trigSide=s;render();
  await revealCheck(s,u,"drive",idx,tot,prev);if(G.over)return;
  await applyTrigger(s,u,true,att,true);if(G.over)return;
@@ -4830,6 +5223,13 @@ function canPay(items,ctx){
   if(c.t==="discardSetOrder"&&!P.hand.some(x=>x!==u&&cd(x).type==="Set Order"))return false;
   if(c.t==="bindDropOrder"&&!P.drop.some(x=>!isUnit(x)))return false;
   if(c.t==="dropUnitToSoul"&&!P.drop.some(isUnit))return false;
+  if(c.t==="rgGradeToSoul"&&rgs.filter(x=>(cd(x).grade||0)===c.g).length<c.n)return false;
+  if(c.t==="dropGradeToSoul"&&!P.drop.some(x=>(cd(x).grade||0)>=c.g))return false;
+  if(c.t==="bindSoulVar"&&!P.soul.length)return false;
+  if(c.t==="restNamedDiff"&&new Set(rgs.filter(x=>!x.rest&&cd(x).name.includes(c.has)).map(x=>cd(x).name)).size<c.n)return false;
+  if(c.t==="rgHasToSoul"&&!rgs.some(x=>cd(x).name.includes(c.has)))return false;
+  if(c.t==="dropNonHealOverBottom"&&!P.drop.some(x=>cd(x).trig!=="Heal"&&cd(x).trig!=="Over"))return false;
+  if(c.t==="dropSameUnitBottom"){const ns=new Set(units(ctx.s).map(([,x])=>cd(x).name));if(!P.drop.some(x=>cd(x).type==="Normal Unit"&&ns.has(cd(x).name)))return false}
   if(c.t==="discardSentinel"&&!P.hand.some(x=>x!==u&&cd(x).sentinel))return false;
   if(c.t==="discardFilter"&&!P.hand.some(x=>x!==u&&(c.f==="order"?!isUnit(x):!!armSide(x))))return false;
   if(c.t==="revealHand"&&P.hand.filter(x=>x!==u&&(cd(x).grade||0)===c.g&&isUnit(x)&&(!c.has||cd(x).name.includes(c.has))).length<c.n)return false;
@@ -4956,7 +5356,7 @@ async function payCost(items,ctx){
    for(const x of pick){const wasTrig=!!cd(x).trig;moveCard(x,"drop");if(!G.over)await fire("soulToDrop",s,x,{where:"Drop"});if(wasTrig&&!G.over&&whereIs(u))await fire("sbTrigSelf",s,u,{where:ctx.where,k:ctx.k})}
   }
   else if(c.t==="discard"||c.t==="handToSoul"){
-   for(let i=0;i<c.n;i++){const L=P.hand.filter(x=>x!==u);if(!L.length)break;let x=bot?botDiscard(s,L):await chooseHandCard(s,c.t==="discard"?"คอสต์: เลือกการ์ดที่จะทิ้ง":"คอสต์: เลือกการ์ดที่จะใส่เข้าโซล",false,L);if(!x||x==="back")x=L[0];moveCard(x,c.t==="discard"?"drop":"soul");if(c.t==="discard")await fire("discarded",s,x,{where:"Drop",phase:G.phase==="ride"?"ride":null,fromVg:ctx.where==="VC"?cd(u).name:null,fromBase:ctx.where==="Order"&&raceHas(u,"Base")})}
+   for(let i=0;i<c.n;i++){const L=P.hand.filter(x=>x!==u);if(!L.length)break;let x=bot?botDiscard(s,L):await chooseHandCard(s,c.t==="discard"?"คอสต์: เลือกการ์ดที่จะทิ้ง":"คอสต์: เลือกการ์ดที่จะใส่เข้าโซล",false,L);if(!x||x==="back")x=L[0];(ctx.costPutCards=ctx.costPutCards||[]).push(x);moveCard(x,c.t==="discard"?"drop":"soul");if(c.t==="discard")await fire("discarded",s,x,{where:"Drop",phase:G.phase==="ride"?"ride":null,fromVg:ctx.where==="VC"?cd(u).name:null,fromBase:ctx.where==="Order"&&raceHas(u,"Base")})}
   }
   else if(c.t==="retireSelf"||c.t==="dropSelf")moveCard(u,"drop");
   else if(c.t==="soulSelf")moveCard(u,"soul");
@@ -4967,7 +5367,7 @@ async function payCost(items,ctx){
    for(let i=0;i<c.n;i++){
     const L=units(s).filter(x=>x[0]!=="VC"&&(c.any||x[1]!==u)&&!(c.t==="restOther"&&x[1].rest));if(!L.length)break;
     let x=bot?L.sort((a,b)=>unitPower(a[1])-unitPower(b[1]))[0][1]:await chooseUnit(s,`คอสต์: ${costLabel([{...c,n:1}])}`,L);if(!x)x=L[0][1];
-    if(c.t==="restOther")x.rest=true;else{moveCard(x,c.t==="retireOther"?"drop":"soul");if(c.t==="retireOther"){P.myRet=(P.myRet||0)+1;if(!G.over)await fire("retire_rc",s,x,{where:"Drop"})}else if(c.t==="rgToSoul"&&!G.over){if(ctx.where==="VC")await fire("rcToSoulByVg",s,x,{where:"Soul"});if(G.turn===s&&!G.over)await fire("rcToSoulTurn",s,x,{where:"Soul"})}}
+    if(c.t==="restOther")x.rest=true;else{moveCard(x,c.t==="retireOther"?"drop":"soul");if(c.t==="retireOther"){P.myRet=(P.myRet||0)+1;if(cd(u).name.includes("Blaster"))P.blasterRetCost=(P.blasterRetCost||0)+1;if(!G.over)await fire("retire_rc",s,x,{where:"Drop"})}else if(c.t==="rgToSoul"&&!G.over){if(ctx.where==="VC")await fire("rcToSoulByVg",s,x,{where:"Soul"});if(G.turn===s&&!G.over)await fire("rcToSoulTurn",s,x,{where:"Soul"})}}
    }
   }
   else if(c.t==="restUnit"){const L=units(s).filter(x=>!x[1].rest);if(L.length){let x=bot?(L.find(y=>BACK.includes(y[0]))||L[0])[1]:await chooseUnit(s,"คอสต์: เลือกยูนิตที่จะเรสต์",L);if(!x)x=L[0][1];x.rest=true}}
@@ -4977,6 +5377,13 @@ async function payCost(items,ctx){
   else if(c.t==="discardSetOrder"){const L=P.hand.filter(x=>x!==u&&cd(x).type==="Set Order");let x=bot?L[0]:(L.length>1?await chooseHandCard(s,"คอสต์: ทิ้ง Set Order จากมือ",false,L):L[0]);if(x&&x!=="back"){moveCard(x,"drop");await fire("discarded",s,x,{where:"Drop"})}}
   else if(c.t==="bindDropOrder"){const L=P.drop.filter(x=>!isUnit(x));let x=bot?L[0]:(L.length>1?await chooseHandCard(s,"คอสต์: ไบนด์ออเดอร์จากดรอป",false,L):L[0]);if(x&&x!=="back")moveCard(x,"removed")}
   else if(c.t==="dropUnitToSoul"){const L=P.drop.filter(isUnit);let x=bot?L[0]:(L.length>1?await chooseHandCard(s,"คอสต์: ส่งยูนิตจากดรอปเข้าโซล",false,L):L[0]);if(x&&x!=="back")moveCard(x,"soul")}
+  else if(c.t==="rgGradeToSoul"){for(let i=0;i<c.n;i++){const L=units(s).filter(([k,x])=>k!=="VC"&&(cd(x).grade||0)===c.g);if(!L.length)break;let x=bot?L[0][1]:await chooseUnit(s,`คอสต์: ใส่เรียร์การ์ดเกรด ${c.g} เข้าโซล (${i+1}/${c.n})`,L);if(!x)x=L[0][1];moveCard(x,"soul")}}
+  else if(c.t==="dropGradeToSoul"){const L=P.drop.filter(x=>(cd(x).grade||0)>=c.g);let x=bot?L[0]:(L.length>1?await chooseHandCard(s,`คอสต์: ส่งเกรด ≥${c.g} จากดรอปเข้าโซล`,false,L):L[0]);if(x&&x!=="back")moveCard(x,"soul")}
+  else if(c.t==="bindSoulVar"){let pick=bot?[P.soul[0]]:((await chooseCards("คอสต์: ไบนด์การ์ดจากโซล (1 ใบขึ้นไป)",P.soul,P.soul.length,"เลือกการ์ดจากโซลที่จะไบนด์",{varMode:true,min:1,max:P.soul.length}))||[P.soul[0]]);pick.forEach(x=>moveCard(x,"removed"));ctx.varCount=pick.length}
+  else if(c.t==="restNamedDiff"){const seen=new Set();for(const[,x]of units(s)){if(seen.size>=c.n)break;if(x!==P.c.VC&&!x.rest&&cd(x).name.includes(c.has)&&!seen.has(cd(x).name)){x.rest=true;seen.add(cd(x).name)}}}
+  else if(c.t==="rgHasToSoul"){const L=units(s).filter(([k,x])=>k!=="VC"&&cd(x).name.includes(c.has));if(L.length){let x=bot?L[0][1]:await chooseUnit(s,`คอสต์: ใส่เรียร์การ์ด "${c.has}" เข้าโซล`,L);if(!x)x=L[0][1];moveCard(x,"soul")}}
+  else if(c.t==="dropNonHealOverBottom"){const L=P.drop.filter(x=>cd(x).trig!=="Heal"&&cd(x).trig!=="Over");let x=bot?L[0]:(L.length>1?await chooseHandCard(s,"คอสต์: ส่งการ์ดจากดรอป (ไม่ใช่ Heal/Over) ลงใต้เด็ค",false,L):L[0]);if(x&&x!=="back")moveCard(x,"deckBottom")}
+  else if(c.t==="dropSameUnitBottom"){const ns=new Set(units(s).map(([,y])=>cd(y).name));const L=P.drop.filter(x=>cd(x).type==="Normal Unit"&&ns.has(cd(x).name));let x=bot?L[0]:(L.length>1?await chooseHandCard(s,"คอสต์: ส่ง Normal Unit ชื่อซ้ำกับบนสนามจากดรอปลงใต้เด็ค",false,L):L[0]);if(x&&x!=="back")moveCard(x,"deckBottom")}
   else if(c.t==="discardSentinel"){const L=P.hand.filter(x=>x!==u&&cd(x).sentinel);let x=bot?L[0]:(L.length>1?await chooseHandCard(s,"คอสต์: ทิ้ง Sentinel จากมือ",false,L):L[0]);if(x&&x!=="back"){moveCard(x,"drop");await fire("discarded",s,x,{where:"Drop"})}}
   else if(c.t==="retireRestRG"){const L=units(s).filter(x=>x[0]!=="VC"&&x[1].rest);if(L.length){let x=bot?L[0][1]:await chooseUnit(s,"คอสต์: รีไทร์เรียร์การ์ดที่เรสต์",L);if(!x)x=L[0][1];moveCard(x,"drop");P.myRet=(P.myRet||0)+1;if(!G.over)await fire("retire_rc",s,x,{where:"Drop"})}}
   else if(c.t==="handGradeToSoul"){const L=P.hand.filter(x=>x!==u&&(c.le?(cd(x).grade||0)<=c.g:(cd(x).grade||0)===c.g));let x=bot?L[0]:(L.length>1?await chooseHandCard(s,`คอสต์: ใส่เกรด ${c.le?"≤":""}${c.g} จากมือเข้าโซล`,false,L):L[0]);if(x&&x!=="back")moveCard(x,"soul")}
@@ -5289,8 +5696,8 @@ async function assistLoop(s,title,text,getCards,zone,ctx_ref,opts={}){
   if(!pick||pick==="done"||G.over)return;
   const dest=await ask(`<h3>${esc(cd(pick).name)}</h3><p class="atext">${esc(text)}</p><p class="note">ส่งใบนี้ไปที่ไหน</p><div class="mrow2">${Object.entries(DEST).filter(([k])=>(k!=="call"&&k!=="callLock")||isUnit(pick)).map(([k,v])=>`<button data-m="${k}">${v}</button>`).join("")}<button data-m="zoomc" data-no="${pick.no}">ดูการ์ด</button><button data-m="back">ย้อนกลับ</button></div>`,b=>b.dataset.m);
   if(!dest||dest==="back"||G.over)continue;
-  if(dest==="call"||dest==="callLock"){const P=G.p[s];const z=["deck","drop","soul","hand","removed","damage","jail"].find(z=>P[z].includes(pick))||zone;const ok=await callTo(s,pick,z);if(ok){if(dest==="callLock")lockCard(pick);if(ctx_ref)ctx_ref.it=[pick]}}
-  else{moveCard(pick,dest);log(`${cd(pick).name} → ${DEST[dest]}`);if(dest==="scouted"&&!G.over)await fire("scouted",s,pick,{where:"Order"})}
+  if(dest==="call"||dest==="callLock"){const P=G.p[s];const z=["deck","drop","soul","hand","removed","damage","jail"].find(z=>P[z].includes(pick))||zone;const ok=await callTo(s,pick,z);if(ok){if(dest==="callLock")lockCard(pick);if(ctx_ref){ctx_ref.it=[pick];ctx_ref.revealed=true;ctx_ref.lastPicked=pick;(ctx_ref.pickedCards=ctx_ref.pickedCards||[]).push(pick);(ctx_ref.calledCards=ctx_ref.calledCards||[]).push(pick)}}}
+  else{moveCard(pick,dest);log(`${cd(pick).name} → ${DEST[dest]}`);if(ctx_ref){ctx_ref.revealed=true;ctx_ref.lastPicked=pick;(ctx_ref.pickedCards=ctx_ref.pickedCards||[]).push(pick);if(dest==="removed"||dest==="removedDown")(ctx_ref.boundCards=ctx_ref.boundCards||[]).push(pick);else(ctx_ref.putCards=ctx_ref.putCards||[]).push(pick)}if(dest==="scouted"&&!G.over)await fire("scouted",s,pick,{where:"Order"})}
   render();
  }
 }
@@ -5307,14 +5714,14 @@ async function runStep(st,ctx,a){
    await payCost(st.items,ctx);log(`${SIDE[s]}ใช้สกิล ${name} (${costLabel(st.items)})`);return true}
   case"if":{let v=condSync(st.cond,ctx);if(v===null){if(bot)return false;v=await askYN(name,st.cond.text||"เงื่อนไขนี้เป็นจริงไหม?","จริง","ไม่จริง")}return v===true}
   case"draw":if(st.opt&&!(await yn(`จั่ว ${st.n} ใบ?`)))return true;draw(s,st.n);log(`${name}: จั่ว ${st.n} ใบ`);return true;
-  case"sc":{if(st.opt&&!(await yn(`โซลชาร์จ ${st.n}?`)))return true;let cnt=0;for(let i=0;i<st.n&&P.deck.length;i++){P.soul.push(P.deck.shift());cnt++}if(cnt){P.scTurn=(P.scTurn||0)+cnt;queueFx(s,"VC","soul");log(`${name}: โซลชาร์จ ${cnt}`);for(let j=0;j<cnt&&!G.over;j++)for(const[k,x]of units(s)){if(G.over)break;if(whereIs(x))await fire("soulCharge",s,x,{where:k==="VC"?"VC":"RC",k})}}return true}
+  case"sc":{if(st.opt&&!(await yn(`โซลชาร์จ ${st.n}?`)))return true;let cnt=0;ctx.scCards=[];for(let i=0;i<st.n&&P.deck.length;i++){const scU=P.deck.shift();P.soul.push(scU);ctx.scCards.push(scU);cnt++}if(cnt){P.scTurn=(P.scTurn||0)+cnt;queueFx(s,"VC","soul");log(`${name}: โซลชาร์จ ${cnt}`);for(let j=0;j<cnt&&!G.over;j++)for(const[k,x]of units(s)){if(G.over)break;if(whereIs(x))await fire("soulCharge",s,x,{where:k==="VC"?"VC":"RC",k})}}return true}
   case"cc":{const dn=P.damage.filter(x=>x.down);let pick=[];if(dn.length){const n=Math.min(st.n,dn.length);pick=(!bot&&dn.length>n)?((await chooseCards(`เคาน์เตอร์ชาร์จ ${n}: เลือกดาเมจที่คว่ำอยู่ที่จะหงาย`,dn,n))||dn.slice(0,n)):dn.slice(0,n);pick.forEach(x=>x.down=false)}if(pick.length)P.ccTurn=(P.ccTurn||0)+pick.length;log(`${name}: เคาน์เตอร์ชาร์จ ${pick.length}`);return true}
   case"choice":{let o=st.opts[0];if(!bot){const r=await ask(`<h3>${esc(name)}</h3><p>เลือกอย่างใดอย่างหนึ่ง</p><div class="mrow2"><button data-m="0">เคาน์เตอร์ชาร์จ ${st.opts[0].n}</button><button data-m="1">โซลชาร์จ ${st.opts[1].n}</button></div>`,b=>+b.dataset.m);o=st.opts[r||0]}else if(!P.damage.some(x=>x.down))o=st.opts[1];return runStep(o,ctx,a)}
   case"buff":{
-   const tg=st.who==="this"?[u]:st.who==="attacker"?(G.battle?[G.battle.att]:[]):st.who==="vg"?[P.c.VC].filter(Boolean):st.who==="both"?[...(ctx.it||[]),u]:(ctx.it||[]);
+   const tg=st.who==="this"?[u]:st.who==="attacker"?(G.battle?[G.battle.att]:[]):st.who==="vg"?[P.c.VC].filter(Boolean):st.who==="both"?[...(ctx.it||[]),u]:((ctx.it&&ctx.it.length)?ctx.it:(ctx.src?[ctx.src]:[]));
    const mul=st.per?Math.floor(metricVal(st.per.metric,ctx)/st.per.div):1;
    for(const x of tg)for(const[stat,n0]of st.stats){const n=n0*mul;
-    if(stat==="power"){if(st.dur==="battle")x.bpw+=n;else x.pw+=n}
+    if(stat==="power"){if(st.dur==="battle")x.bpw+=n;else x.pw+=n;ctx.lastBuffPow=Math.max(ctx.lastBuffPow||0,n)}
     else if(stat==="critical"){if(st.dur==="battle")x.bcr+=n;else x.cr+=n}
     else if(stat==="shield")x.bsh+=n;
    }
@@ -5332,6 +5739,7 @@ async function runStep(st,ctx,a){
     if(G.over)return false;if(!x){if(st.upto)break;x=rest[0][1]}
     ctx.it.push(x);
    }
+   if(ctx.where==="VC"&&!st.opp)for(const x of ctx.it){if(G.over)break;const w=whereIs(x);if(w)await fire("chosenByVg",w.s,x,{where:w.k==="VC"?"VC":"RC",k:w.k})}
    return true}
   case"retireIt":{for(const x of ctx.it||[]){const w=whereIs(x);if(w){log(`${name}: รีไทร์ ${cd(x).name}`);moveCard(x,"drop");ctx.retired=true;ctx.retiredCount=(ctx.retiredCount||0)+1;if(w.s!==s){if(name.includes("Gandeeva"))showArchFX("gandeeva",{masques:name.includes("Masques")});P.oppRet=(P.oppRet||0)+1;for(const[k2,y]of units(s)){if(G.over)break;if(whereIs(y))await fire("oppRetire",s,y,{where:k2==="VC"?"VC":"RC",k:k2,phase:G.phase})}}else{P.myRet=(P.myRet||0)+1}if(!G.over&&w.k!=="VC")await fire("retire_rc",w.s,x,{where:"Drop"})}}return true}
   case"stand":{const tg=(st.who==="this"?[u]:(ctx.it||[]));for(const x of tg){const w=whereIs(x);x.rest=false;x.stoodByEff=true;if(w&&!G.over){await fire("standed",w.s,x,{where:w.k==="VC"?"VC":"RC",k:w.k});for(const[k2,y]of units(w.s)){if(G.over)break;if(whereIs(y))await fire("otherStand",w.s,y,{where:k2==="VC"?"VC":"RC",k:k2,src:x,srcK:w.k})}}}if(name.includes("Overlord"))showArchFX("overlord");else if(name.includes("Bastion"))showArchFX("bastion");log(`${name}: สแตนด์`);return true}
@@ -5758,7 +6166,7 @@ async function runStep(st,ctx,a){
   case"rideIt":{const x=(ctx.it||[])[0];if(!x)return true;const z=["hand","soul","drop"].find(z=>P[z].includes(x));if(!z)return true;await doRide(s,x,z,null,{superior:true,by:a.text.includes("[RevolDress]")||cd(u).body.some(l=>/^\[RevolDress\]/.test(l))?"revol":null,rest:st.rest});ctx.it=[P.c.VC];return true}
   case"alchReduce":P.alchRed=(P.alchRed||0)+st.n;log(`${name}: Alchemagic ครั้งต่อไปในเทิร์นนี้ ลดต้นทุนเคาน์เตอร์บลาสต์ ${st.n}`);return true;
   case"alchFreeSB":P.alchFree=true;log(`${name}: Alchemagic ครั้งต่อไปในเทิร์นนี้ ไม่ต้องจ่ายโซลบลาสต์`);return true;
-  case"callIt":{const only=st.row==="bc"?["BC"]:st.row==="front"?["FL","FR"]:st.row==="back"?["BL","BC","BR"]:null;for(const x of(ctx.it||[]).slice()){if(G.over)break;const xs=sideOfCard(x),z=["hand","drop","soul","deck","removed","jail","scouted"].find(zz=>G.p[xs][zz].includes(x));if(z&&isUnit(x)){const ok=await callTo(xs,x,z,null,only);if(ok&&st.rest)x.rest=true}}return true}
+  case"callIt":{const only=st.row==="bc"?["BC"]:st.row==="front"?["FL","FR"]:st.row==="back"?["BL","BC","BR"]:null;for(const x of(ctx.it||[]).slice()){if(G.over)break;const xs=sideOfCard(x),z=["hand","drop","soul","deck","removed","jail","scouted"].find(zz=>G.p[xs][zz].includes(x));if(z&&isUnit(x)){const ok=await callTo(xs,x,z,null,only);if(ok){(ctx.calledCards=ctx.calledCards||[]).push(x);if(st.rest)x.rest=true}}}return true}
   case"unstride":unstride(s);return true;
   case"manualText":if(!bot)await manualStep(name,st.text);return true;
   case"imprisonIt":{for(const x of(ctx.it||[]).slice())imprison(x,s);return true}
@@ -5815,7 +6223,7 @@ async function runStep(st,ctx,a){
    const defRest=/shuffle/i.test(st.text)?"shuf":/bottom of your deck/i.test(st.text)?"bottom":/into (?:your )?drop/i.test(st.text)?"drop":/into (?:your )?soul/i.test(st.text)?"soul":"top";
    const plan=new Map(cards.map(x=>[x.id,defRest==="shuf"?"top":defRest]));
    const topOrd=[];
-   const D_LBL={top:"▲ บนเด็ค",bottom:"▼ ใต้เด็ค",hand:"✋ ขึ้นมือ",call:"⚔ คอล",drop:"⬇ ดรอป",soul:"🔮 โซล"};
+   const D_LBL={top:"▲ บนเด็ค",bottom:"▼ ใต้เด็ค",hand:"✋ ขึ้นมือ",call:"⚔ คอล",drop:"⬇ ดรอป",soul:"🔮 โซล",order:"📜 ออเดอร์"};
    const paintScry=m=>{
     m.querySelectorAll(".scry-item").forEach(box=>{
      const id=+box.dataset.id,d=plan.get(id)||"top";
@@ -5837,9 +6245,9 @@ async function runStep(st,ctx,a){
        <button data-m="sd" data-id="${x.id}" data-dest="top">▲ บน</button>
        <button data-m="sd" data-id="${x.id}" data-dest="bottom">▼ ใต้</button>
        <button data-m="sd" data-id="${x.id}" data-dest="hand">✋ มือ</button>
-       ${isUnit(x)?`<button data-m="sd" data-id="${x.id}" data-dest="call">⚔ คอล</button>`:`<button data-m="sd" data-id="${x.id}" data-dest="soul">🔮 โซล</button>`}
+       ${isUnit(x)?`<button data-m="sd" data-id="${x.id}" data-dest="call">⚔ คอล</button>`:`<button data-m="sd" data-id="${x.id}" data-dest="order">📜 ออเดอร์</button>`}
        <button data-m="sd" data-id="${x.id}" data-dest="drop">⬇ ดรอป</button>
-       ${isUnit(x)?`<button data-m="sd" data-id="${x.id}" data-dest="soul">🔮 โซล</button>`:""}
+       <button data-m="sd" data-id="${x.id}" data-dest="soul">🔮 โซล</button>
       </div>
      </div>`;
     }).join("")}</div>
@@ -5862,15 +6270,17 @@ async function runStep(st,ctx,a){
    });
    paintScry($("#pmodal"));
    const res=await actP;if(!res||G.over)return true;
+   ctx.lookedCards=cards.slice();
    const toCall=[],tops=[];
    for(const x of cards){
     const d=plan.get(x.id)||"top";
     if(d==="top")tops.push(x);
-    else if(d==="bottom"){moveCard(x,"deckBottom");log(`${name}: ${cd(x).name} → ใต้เด็ค`)}
-    else if(d==="hand"){moveCard(x,"hand");log(`${name}: ${cd(x).name} → ขึ้นมือ`)}
-    else if(d==="drop"){moveCard(x,"drop");log(`${name}: ${cd(x).name} → ดรอป`)}
-    else if(d==="soul"){moveCard(x,"soul");log(`${name}: ${cd(x).name} → โซล`)}
-    else if(d==="call")toCall.push(x);
+    else if(d==="bottom"){moveCard(x,"deckBottom");(ctx.putCards=ctx.putCards||[]).push(x);log(`${name}: ${cd(x).name} → ใต้เด็ค`)}
+    else if(d==="hand"){moveCard(x,"hand");ctx.revealed=true;ctx.lastPicked=x;(ctx.pickedCards=ctx.pickedCards||[]).push(x);log(`${name}: ${cd(x).name} → ขึ้นมือ`)}
+    else if(d==="drop"){moveCard(x,"drop");ctx.lastPicked=x;(ctx.putCards=ctx.putCards||[]).push(x);log(`${name}: ${cd(x).name} → ดรอป`)}
+    else if(d==="soul"){moveCard(x,"soul");ctx.lastPicked=x;(ctx.putCards=ctx.putCards||[]).push(x);log(`${name}: ${cd(x).name} → โซล`)}
+    else if(d==="order"){moveCard(x,"order");ctx.revealed=true;ctx.lastPicked=x;(ctx.pickedCards=ctx.pickedCards||[]).push(x);log(`${name}: ${cd(x).name} → โซนออเดอร์`);await fire("orderput",s,x,{where:"Order"})}
+    else if(d==="call"){toCall.push(x);ctx.revealed=true;ctx.lastPicked=x;(ctx.pickedCards=ctx.pickedCards||[]).push(x);(ctx.calledCards=ctx.calledCards||[]).push(x)}
    }
    // Re-order cards kept on top according to topOrd (index 0 = very top of deck)
    tops.sort((a,b)=>(topOrd.indexOf(a.id)===-1?99:topOrd.indexOf(a.id))-(topOrd.indexOf(b.id)===-1?99:topOrd.indexOf(b.id)));
@@ -5894,7 +6304,7 @@ async function runStep(st,ctx,a){
 const OPT_RT=new Set(["stand","buff","drive","token","grant","grantKw","self","nohit","noIntercept","itTo","standAll","buffAll","backAttack","lockIt","unlockIt","retireIt"]);
 async function runAbility(a,i,ctx){G.abd=(G.abd||0)+1;try{return await runAbility0(a,i,ctx)}finally{if(G)G.abd=Math.max(0,(G.abd||1)-1)}}
 async function runAbility0(a,i,ctx){
- const s=ctx.s,u=ctx.u,bot=G.cfg.bots[s],name=cd(u).name;let gated=false;
+ const s=ctx.s,u=ctx.u,bot=G.cfg.bots[s],name=cd(u).name;let gated=false;ctx.abIdx=i;if(a.kind==="ACT"&&u&&i>=0){u.actCount=u.actCount||{};u.actCount[i]=(u.actCount[i]||0)+1}
  for(const cn of a.conds){
   let v=condSync(cn,ctx);
   if(v===null){if(bot)return false;v=await askYN(`${name}: เงื่อนไขนี้เป็นจริงไหม?`,`${cn.text}\n\n${a.text}`,"จริง","ไม่จริง");if(G.over)return false}
