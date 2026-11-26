@@ -1882,89 +1882,190 @@ button,.ch,.cell,.tile,.mc,.zb{touch-action:manipulation;-webkit-tap-highlight-c
 .bgl-fill{height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#2dd4bf,#38bdf8);transition:width .2s ease-out}
 
 
-/* =====================  v25: VISUAL CARD GRID & TITLE LOBBY  ===================== */
+/* =====================  v26: ANIME OP LOBBY + PLANET CRAY + MASTER DUEL MENU  ===================== */
 #lobby{
- position:fixed;inset:0;z-index:16;overflow:auto;
- background:
-  radial-gradient(ellipse at 22% 18%,rgba(56,189,248,.18) 0%,transparent 52%),
-  radial-gradient(ellipse at 82% 82%,rgba(244,63,94,.16) 0%,transparent 54%),
-  linear-gradient(180deg,rgba(255,255,255,.02) 1px,transparent 1px) 0 0/100% 36px,
-  linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px) 0 0/36px 100%,
-  radial-gradient(ellipse at 50% 40%,#131f36 0%,#080d17 72%,#04070d 100%);
- display:flex;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top,0px)) 16px max(20px,env(safe-area-inset-bottom,0px));
+ position:fixed;inset:0;z-index:16;overflow:hidden;
+ --lb-c:#38bdf8;--lb-c2:#2dd4bf;
+ background:#04070f;
+ display:flex;flex-direction:column;
+ padding:max(14px,env(safe-area-inset-top,0px)) clamp(14px,3vw,36px) max(14px,env(safe-area-inset-bottom,0px));
 }
-.lb-wrap{
- width:min(920px,100%);display:grid;grid-template-columns:1.05fr 1fr;gap:22px;align-items:center;
-}
-.lb-hero{
- display:flex;flex-direction:column;gap:14px;
-}
-.lb-brand{
- display:flex;flex-direction:column;gap:4px;
-}
-.lb-brand small{
- font-size:11px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);
-}
-.lb-brand h1{
- margin:0;font-size:clamp(28px,5vw,44px);font-weight:900;font-style:italic;letter-spacing:.04em;line-height:1.05;
- color:#fff;text-shadow:0 4px 24px rgba(56,189,248,.35);
-}
-.lb-brand h1 b{color:#ef4444}
-.lb-brand p{margin:4px 0 0;color:#94a3b8;font-size:13px}
+#lobby[data-nat="Dragon Empire"]{--lb-c:#f97316;--lb-c2:#ef4444}
+#lobby[data-nat="Dark States"]{--lb-c:#a855f7;--lb-c2:#ec4899}
+#lobby[data-nat="Keter Sanctuary"]{--lb-c:#facc15;--lb-c2:#f59e0b}
+#lobby[data-nat="Brandt Gate"]{--lb-c:#38bdf8;--lb-c2:#6366f1}
+#lobby[data-nat="Stoicheia"]{--lb-c:#34d399;--lb-c2:#10b981}
 
-/* Active Deck Showcase */
+/* Planet Cray Fallback Backdrop */
+.lb-cray{
+ position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+ background:
+  radial-gradient(ellipse at 72% 46%,color-mix(in srgb,var(--lb-c) 24%,transparent) 0%,transparent 52%),
+  radial-gradient(circle at 20% 20%,rgba(255,255,255,.12) 1px,transparent 1.5px) 0 0/90px 90px,
+  radial-gradient(circle at 60% 70%,rgba(255,255,255,.1) 1px,transparent 1.5px) 0 0/130px 130px,
+  radial-gradient(ellipse at 50% 35%,#101c34 0%,#060a14 70%,#03050a 100%);
+}
+.lb-cray::after{
+ content:"";position:absolute;left:50%;bottom:-62vh;width:150vw;height:86vh;
+ transform:translateX(-50%);border-radius:50%;
+ background:radial-gradient(ellipse at 50% 18%,color-mix(in srgb,var(--lb-c) 45%,#0b1a30) 0%,#081224 44%,#03060d 78%);
+ border-top:2px solid color-mix(in srgb,var(--lb-c) 85%,#fff);
+ box-shadow:0 -18px 80px color-mix(in srgb,var(--lb-c) 55%,transparent),inset 0 24px 60px color-mix(in srgb,var(--lb-c) 35%,transparent);
+}
+
+/* Fullscreen YouTube OP Background */
+.lb-ytwrap{
+ position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none;
+ opacity:.62;transition:opacity .5s ease;
+}
+.lb-ytwrap.off{opacity:0}
+.lb-ytwrap iframe{
+ position:absolute;top:50%;left:50%;
+ width:max(100vw,177.78vh);height:max(100vh,56.25vw);
+ transform:translate(-50%,-50%) scale(1.08);border:0;pointer-events:none;
+}
+.lb-vignette{
+ position:absolute;inset:0;z-index:2;pointer-events:none;
+ background:
+  linear-gradient(90deg,rgba(4,8,18,.88) 0%,rgba(4,8,18,.52) 42%,rgba(4,8,18,.32) 68%,rgba(4,8,18,.72) 100%),
+  linear-gradient(180deg,rgba(4,8,18,.78) 0%,transparent 24%,transparent 76%,rgba(4,8,18,.9) 100%);
+}
+
+/* Foreground Shell */
+.lb-fg{
+ position:relative;z-index:3;flex:1;min-height:0;
+ display:flex;flex-direction:column;justify-content:space-between;
+ width:min(1240px,100%);margin:0 auto;gap:12px;
+}
+
+/* Top Bar */
+.lb-top{
+ display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+ padding:8px 14px;border-radius:12px;
+ background:rgba(8,14,26,.76);border:1px solid rgba(255,255,255,.12);
+ backdrop-filter:blur(10px);
+}
+.lb-logo{display:flex;align-items:baseline;gap:8px}
+.lb-logo h1{margin:0;font-size:clamp(18px,2.4vw,24px);font-weight:900;font-style:italic;letter-spacing:.05em;color:#fff}
+.lb-logo h1 b{color:#ef4444}
+.lb-logo small{font-size:10px;font-weight:800;letter-spacing:.18em;color:var(--lb-c);text-transform:uppercase}
+.lb-ytbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.lb-ytbar .opname{
+ font-size:11.5px;color:#cbd5e1;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+}
+.lb-ytbar button{
+ padding:4px 9px;font-size:12px;border-radius:99px;background:rgba(15,23,42,.88);border:1px solid rgba(148,163,184,.3);
+}
+.lb-ytbar button:hover{border-color:var(--lb-c)}
+
+/* Main Split: Left Master Duel Menu + Right Ace Showcase */
+.lb-main{
+ flex:1;min-height:0;display:grid;grid-template-columns:minmax(290px,430px) 1fr;
+ gap:clamp(18px,4vw,48px);align-items:center;
+}
+.lb-left{display:flex;flex-direction:column;gap:14px}
+
+/* Skewed Master Duel Menu Buttons */
+.lb-menu{display:flex;flex-direction:column;gap:12px}
+.lb-btn{
+ position:relative;display:flex;align-items:center;gap:14px;
+ padding:15px 22px;border-radius:10px;text-align:left;
+ transform:skewX(-10deg);
+ background:linear-gradient(105deg,rgba(12,20,38,.9) 0%,rgba(20,32,56,.78) 100%);
+ border:1.5px solid rgba(148,163,184,.32);border-left:5px solid var(--lb-c);
+ color:#f8fafc;box-shadow:0 10px 28px rgba(0,0,0,.55);
+ transition:transform .18s cubic-bezier(.2,.9,.3,1),border-color .18s,box-shadow .18s,background .18s;
+}
+.lb-btn>*{transform:skewX(10deg)}
+.lb-btn:hover{
+ transform:skewX(-10deg) translateX(10px);
+ border-color:var(--lb-c);background:linear-gradient(105deg,rgba(20,34,62,.96) 0%,rgba(30,52,88,.88) 100%);
+ box-shadow:0 14px 34px color-mix(in srgb,var(--lb-c) 35%,transparent);
+}
+.lb-btn.primary{
+ background:linear-gradient(110deg,var(--lb-c) 0%,var(--lb-c2) 100%);
+ border:0;color:#04121c;padding:18px 24px;
+ box-shadow:0 12px 36px color-mix(in srgb,var(--lb-c) 45%,transparent);
+}
+.lb-btn.primary:hover{
+ transform:skewX(-10deg) translateX(12px) scale(1.02);
+ box-shadow:0 16px 44px color-mix(in srgb,var(--lb-c) 68%,transparent);
+}
+.lb-btn .lb-ico{
+ width:44px;height:44px;border-radius:10px;flex:0 0 auto;
+ display:flex;align-items:center;justify-content:center;font-size:23px;
+ background:rgba(255,255,255,.12);
+}
+.lb-btn.primary .lb-ico{background:rgba(4,18,28,.16)}
+.lb-btn .lb-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.lb-btn .lb-txt b{font-size:18px;font-weight:900;letter-spacing:.03em;text-transform:uppercase}
+.lb-btn .lb-txt small{font-size:12px;opacity:.85}
+
+/* Compact Active Deck Selector Box */
 .lb-deck{
- display:flex;gap:14px;align-items:center;padding:12px;border-radius:14px;
- background:rgba(15,23,42,.82);border:1.5px solid rgba(148,163,184,.25);
- box-shadow:0 14px 36px rgba(0,0,0,.55);backdrop-filter:blur(8px);
+ display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:12px;
+ background:rgba(8,14,26,.82);border:1px solid rgba(255,255,255,.14);
+ backdrop-filter:blur(8px);
 }
-.lb-cover{
- width:86px;aspect-ratio:63/88;border-radius:8px;flex:0 0 auto;overflow:hidden;position:relative;
- background:linear-gradient(155deg,#1e293b,#0f172a);border:1.5px solid rgba(251,191,36,.55);
- box-shadow:0 8px 20px rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;
- text-align:center;font-size:10px;color:#94a3b8;padding:4px;cursor:zoom-in;
-}
-.lb-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-.lb-dmeta{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
-.lb-dmeta label{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8}
-.lb-dmeta select{
- width:100%;background:rgba(6,11,20,.85);border:1px solid rgba(148,163,184,.32);
- color:#f8fafc;font-weight:700;padding:6px 8px;border-radius:8px;
+.lb-deck-row{display:flex;gap:8px;align-items:center}
+.lb-deck label{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8}
+.lb-deck select{
+ flex:1;background:rgba(4,9,18,.9);border:1px solid rgba(148,163,184,.35);
+ color:#fff;font-weight:700;padding:6px 10px;border-radius:8px;
 }
 .lb-dstats{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 
-/* Lobby Action Menu */
-.lb-menu{display:flex;flex-direction:column;gap:12px}
-.lb-btn{
- display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;text-align:left;
- background:rgba(15,23,42,.86);border:1.5px solid rgba(148,163,184,.26);
- color:#f8fafc;transition:transform .16s,border-color .16s,box-shadow .16s,background .16s;
- box-shadow:0 10px 26px rgba(0,0,0,.45);
+/* Right Column: Ace Card + Spinning Vanguard Magic Circle */
+.lb-right{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;position:relative;
 }
-.lb-btn:hover{
- transform:translateY(-2px);border-color:var(--acc);background:rgba(20,34,58,.95);
- box-shadow:0 14px 32px rgba(56,189,248,.22);
+.lb-ace-stage{
+ position:relative;width:clamp(190px,22vw,268px);aspect-ratio:63/88;
+ display:flex;align-items:center;justify-content:center;
 }
-.lb-btn.primary{
- background:linear-gradient(135deg,#0ea5e9 0%,#2dd4bf 100%);
- border:0;color:#04151f;box-shadow:0 12px 32px rgba(45,212,191,.35);
+.lb-rune{
+ position:absolute;left:50%;top:50%;width:152%;aspect-ratio:1;
+ transform:translate(-50%,-50%);pointer-events:none;
+ color:var(--lb-c);opacity:.82;
+ filter:drop-shadow(0 0 18px var(--lb-c));
+ animation:lbSpin 28s linear infinite;
 }
-.lb-btn.primary:hover{
- background:linear-gradient(135deg,#38bdf8 0%,#5eead4 100%);
- box-shadow:0 16px 38px rgba(45,212,191,.5);
+@keyframes lbSpin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+.lb-ace-card{
+ position:relative;z-index:2;width:100%;height:100%;border-radius:14px;overflow:hidden;
+ background:linear-gradient(155deg,#1e293b,#0b1120);
+ border:2px solid color-mix(in srgb,var(--lb-c) 85%,#fff);
+ box-shadow:0 20px 55px rgba(0,0,0,.85),0 0 36px color-mix(in srgb,var(--lb-c) 45%,transparent);
+ cursor:zoom-in;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;
+ animation:lbFloat 4.2s ease-in-out infinite;
 }
-.lb-btn .lb-ico{
- width:46px;height:46px;border-radius:12px;flex:0 0 auto;
- display:flex;align-items:center;justify-content:center;font-size:24px;
- background:rgba(255,255,255,.1);
+.lb-ace-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+@keyframes lbFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.lb-ace-bar{
+ position:relative;z-index:2;display:flex;align-items:center;gap:8px;
+ padding:5px 12px;border-radius:99px;
+ background:rgba(8,14,26,.82);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(8px);
+ font-size:12px;color:#e2e8f0;
 }
-.lb-btn.primary .lb-ico{background:rgba(4,21,31,.16)}
-.lb-btn .lb-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
-.lb-btn .lb-txt b{font-size:17px;font-weight:900;letter-spacing:.02em}
-.lb-btn .lb-txt small{font-size:12px;opacity:.82}
+.lb-ace-bar b{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-ace-bar button{padding:2px 8px;font-size:11.5px;border-radius:99px}
+
+/* Bottom Status Footer */
 .lb-foot{
  display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;
- font-size:11.5px;color:#64748b;margin-top:4px;
+ font-size:11.5px;color:#94a3b8;padding:4px 6px;
+}
+
+@media(max-width:860px){
+ #lobby{overflow:auto}
+ .lb-main{grid-template-columns:1fr;gap:20px;align-content:start;padding:8px 0}
+ .lb-right{order:-1}
+ .lb-ace-stage{width:clamp(145px,42vw,200px)}
+ .lb-btn{transform:none;padding:13px 16px}
+ .lb-btn>*{transform:none}
+ .lb-btn:hover{transform:translateX(4px)}
+ .lb-ytbar .opname{max-width:150px}
 }
 
 /* Visual Card Grid Mode (Full-Art Tiles) */
@@ -2032,37 +2133,56 @@ button,.ch,.cell,.tile,.mc,.zb{touch-action:manipulation;-webkit-tap-highlight-c
 </head>
 <body>
 <div id="lobby" hidden>
- <div class="lb-wrap">
-  <div class="lb-hero">
-   <div class="lb-brand">
-    <small>CARDFIGHT!! VANGUARD · OVERDRESS</small>
-    <h1><b>V</b>ANGUARD D-LAB</h1>
-    <p>จำลองการดวลและจัดเด็ค D-Series ครบถึง D-BT13 พร้อมระบบสกิลอัตโนมัติและห้องออนไลน์</p>
+ <div class="lb-cray"></div>
+ <div class="lb-ytwrap" id="lbYtWrap"><div id="lbYtSlot"></div></div>
+ <div class="lb-vignette"></div>
+ <div class="lb-fg">
+  <div class="lb-top">
+   <div class="lb-logo"><h1><b>V</b>ANGUARD D-LAB</h1><small>OVERDRESS · WILL+DRESS · DIVINEZ</small></div>
+   <div class="lb-ytbar">
+    <span class="opname" id="lbOpName">กำลังเตรียม OP…</span>
+    <button id="lbYtMute" title="เปิด/ปิดเสียงเพลง OP">🔇 เสียง</button>
+    <button id="lbYtNext" title="สุ่มเปลี่ยน OP ภาค D">⏭️ สุ่ม OP</button>
+    <button id="lbYtTog" title="สลับพื้นหลัง OP / ดาวเครย์">🎬 OP: เปิด</button>
    </div>
-   <div class="lb-deck">
-    <div class="lb-cover" id="lbCover">ไม่มีรูปปก</div>
-    <div class="lb-dmeta">
-     <label for="lbDeckSel">เด็คที่ใช้งานอยู่</label>
-     <select id="lbDeckSel" aria-label="เลือกเด็คหน้าแรก"></select>
+  </div>
+  <div class="lb-main">
+   <div class="lb-left">
+    <div class="lb-menu">
+     <button class="lb-btn primary" id="lbPlay">
+      <span class="lb-ico">⚔️</span>
+      <span class="lb-txt"><b>STAND UP! (เริ่มดวล)</b><small>สู้บอต · เล่น 2 คน · สร้าง/เข้าห้องออนไลน์</small></span>
+     </button>
+     <button class="lb-btn" id="lbDeckBtn">
+      <span class="lb-ico">🃏</span>
+      <span class="lb-txt"><b>DECK LAB (จัดเด็ค)</b><small>คลังการ์ดแบบรูปภาพเต็มใบ ครบถึง D-BT13</small></span>
+     </button>
+     <button class="lb-btn" id="lbTestBtn">
+      <span class="lb-ico">🎴</span>
+      <span class="lb-txt"><b>HAND TESTER (เทสต์มือ)</b><small>สุ่มจั่วมือ 5 ใบ + ทดลองมัลลิแกนก่อนดวลจริง</small></span>
+     </button>
+    </div>
+    <div class="lb-deck">
+     <label for="lbDeckSel">เด็คที่ใช้งานอยู่ปัจจุบัน</label>
+     <div class="lb-deck-row"><select id="lbDeckSel" aria-label="เลือกเด็คหน้าแรก"></select></div>
      <div class="lb-dstats" id="lbStats"></div>
     </div>
    </div>
-   <div class="lb-foot"><span id="lbCardStat"></span><span id="lbImgStat"></span></div>
+   <div class="lb-right">
+    <div class="lb-ace-stage">
+     <svg class="lb-rune" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="94" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="10 6"/>
+      <circle cx="100" cy="100" r="82" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".7"/>
+      <polygon points="100,14 174,143 26,143" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".6"/>
+      <polygon points="100,186 26,57 174,57" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".6"/>
+      <circle cx="100" cy="100" r="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 5"/>
+     </svg>
+     <div class="lb-ace-card" id="lbCover">กำลังโหลด…</div>
+    </div>
+    <div class="lb-ace-bar"><b id="lbAceName">—</b><button id="lbRandAce" title="สุ่มการ์ดเอซโชว์">🎲 สุ่มตัวโชว์</button></div>
+   </div>
   </div>
-  <div class="lb-menu">
-   <button class="lb-btn primary" id="lbPlay">
-    <span class="lb-ico">⚔️</span>
-    <span class="lb-txt"><b>เริ่มดวล (Play)</b><small>สู้บอต · เล่น 2 คน · สร้าง/เข้าห้องออนไลน์</small></span>
-   </button>
-   <button class="lb-btn" id="lbDeckBtn">
-    <span class="lb-ico">🃏</span>
-    <span class="lb-txt"><b>จัดเด็ค & คลังการ์ด (Deck Lab)</b><small>ดูการ์ดแบบรูปภาพเต็มใบ จัดเด็คหลัก / ไรด์เด็ค / G เด็ค</small></span>
-   </button>
-   <button class="lb-btn" id="lbTestBtn">
-    <span class="lb-ico">🎴</span>
-    <span class="lb-txt"><b>เทสต์มือ (Hand Tester)</b><small>สุ่มจั่วมือ 5 ใบ + ทดลองมัลลิแกนก่อนลงสนามจริง</small></span>
-   </button>
-  </div>
+  <div class="lb-foot"><span id="lbCardStat"></span><span id="lbImgStat"></span></div>
  </div>
 </div>
 <div id="app" data-v="cards">
@@ -2418,33 +2538,71 @@ function updateCounts(){
   if(b)b.title=other?"โซนอื่น "+other:"";
  });
 }
+const D_OPS=[
+ {id:"GrGLgc6XKjs",title:"overDress OP1 · ZEAL of proud (Roselia)"},
+ {id:"kPcCBxVCmBE",title:"overDress S2 · START (Strawberry Prince)"},
+ {id:"X-S6hz9qq_k",title:"will+Dress OP1 · BLACK&WHITE (Argonavis)"},
+ {id:"WPzPgFHjNfw",title:"will+Dress S2 · Accelerate (Strawberry Prince)"},
+ {id:"4BwrHsYmRms",title:"will+Dress S3 · The last resort (GYROAXIA)"},
+ {id:"U9GBBSI_ssE",title:"Divinez OP1 · Trump Card (V.W.P)"},
+ {id:"UzHqDnQvSxQ",title:"Divinez S2 · Fate (Strawberry Prince)"},
+ {id:"CmsVxrpHL50",title:"Divinez DELUXE · Meramera (Kis-My-Ft2)"},
+ {id:"gr73cn_ny3k",title:"Divinez DELUXE Finals · Feathered Dreams (Morfonica)"},
+ {id:"J7vOviByEnw",title:"Divinez Parallactic Clash · The Phantom World (V.W.P)"}
+];
+let lbOpIdx=-1,lbOpOn=lsGet("vg.lbOpOn",true),lbOpMuted=true,lbRandNo=null;
+function loadLobbyOP(forceNext=false){
+ const slot=$("#lbYtSlot"),wrap=$("#lbYtWrap"),nm=$("#lbOpName"),bt=$("#lbYtTog"),bm=$("#lbYtMute");
+ if(!slot||!wrap)return;
+ if(bt)bt.textContent=lbOpOn?"🎬 OP: เปิด":"🪐 ดาวเครย์";
+ if(bm)bm.textContent=lbOpMuted?"🔇 เสียง":"🔊 เสียง";
+ if(!lbOpOn||$("#lobby").hidden){slot.innerHTML="";wrap.classList.add("off");if(nm)nm.textContent="พื้นหลัง: ดาวเครย์";return}
+ if(lbOpIdx<0||forceNext){
+  let n=Math.random()*D_OPS.length|0;
+  if(D_OPS.length>1&&n===lbOpIdx)n=(n+1)%D_OPS.length;
+  lbOpIdx=n;
+ }
+ const op=D_OPS[lbOpIdx];
+ if(nm)nm.textContent="🎵 "+op.title;
+ wrap.classList.remove("off");
+ const src=`https://www.youtube.com/embed/${op.id}?autoplay=1&mute=${lbOpMuted?1:0}&controls=0&loop=1&playlist=${op.id}&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&disablekb=1`;
+ slot.innerHTML=`<iframe src="${src}" allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin" title="${esc(op.title)}"></iframe>`;
+}
+function pickRandomAce(){
+ const pool=CARDS.filter(c=>IMG[c.no]&&(c.rarity==="RRR"||c.rarity==="ORR"||c.rarity==="10thRRR"||(c.grade||0)>=3));
+ const arr=pool.length?pool:CARDS;
+ return arr.length?arr[Math.random()*arr.length|0]:null;
+}
 function renderLobby(){
  const lb=$("#lobby");if(!lb)return;
  const dk=D();
  const sel=$("#lbDeckSel");
  if(sel)sel.innerHTML=S.decks.map((d,i)=>`<option value="${i}" ${i===S.cur?"selected":""}>${esc(d.name)}</option>`).join("");
- // Pick cover card: highest-grade unit from ride deck, else main deck
  const pickCover=()=>{
+  if(lbRandNo&&BY[lbRandNo])return BY[lbRandNo];
   const rKeys=Object.keys(dk.ride).map(k=>BY[k]).filter(Boolean).sort((a,b)=>(b.grade||0)-(a.grade||0));
   if(rKeys.length)return rKeys[0];
   const mKeys=Object.keys(dk.main).map(k=>BY[k]).filter(Boolean).sort((a,b)=>(b.grade||0)-(a.grade||0));
-  return mKeys[0]||null;
+  if(mKeys.length)return mKeys[0];
+  const rnd=pickRandomAce();if(rnd)lbRandNo=rnd.no;return rnd;
  };
- const cov=pickCover(),cel=$("#lbCover");
+ const cov=pickCover(),cel=$("#lbCover"),anm=$("#lbAceName");
+ if(cov&&cov.nation)lb.dataset.nat=cov.nation;else delete lb.dataset.nat;
  if(cel){
   if(cov&&IMG[cov.no]){cel.innerHTML=`<img src="${IMG[cov.no]}" alt="${esc(cov.name)}">`;cel.dataset.zoom=cov.no}
   else if(cov){cel.innerHTML=`<span>${esc(cov.name)}</span>`;cel.dataset.zoom=cov.no}
   else{cel.innerHTML="<span>ยังไม่มีการ์ด</span>";delete cel.dataset.zoom}
  }
+ if(anm)anm.textContent=cov?cov.name:"—";
  const nm=total("main"),nr=total("ride"),tot=nm+nr;
  const st=$("#lbStats");
- if(st)st.innerHTML=`<span class="chip ${tot===50?"ok":"warn"}">รวม ${tot}/50</span><span class="chip ${nr>=4?"ok":"warn"}">ไรด์ ${nr}</span><span class="chip">${cov&&cov.nation?esc(cov.nation):"ยังไม่ระบุเนชัน"}</span>`;
+ if(st)st.innerHTML=`<span class="chip ${tot===50?"ok":"warn"}">รวม ${tot}/50</span><span class="chip ${nr>=4?"ok":"warn"}">ไรด์ ${nr}</span><span class="chip">${cov&&cov.nation?esc(cov.nation):"สุ่มการ์ดเอซ"}</span>`;
  const cs=$("#lbCardStat"),is=$("#lbImgStat");
- if(cs)cs.textContent=CARDS.length?`ฐานข้อมูลการ์ด ${CARDS.length.toLocaleString()} ใบ`:"";
+ if(cs)cs.textContent=CARDS.length?`ฐานข้อมูลการ์ด ${CARDS.length.toLocaleString()} ใบ (ครบถึง D-BT13)`:"";
  if(is){const n=Object.keys(imgBlobs).length;is.textContent=n?`รูปการ์ดพร้อมใช้ ${n.toLocaleString()} ใบ`:"กำลังโหลดรูปการ์ด…"}
 }
-function openLobby(){renderLobby();const lb=$("#lobby");if(lb)lb.hidden=false}
-function closeLobby(){const lb=$("#lobby");if(lb)lb.hidden=true}
+function openLobby(){const lb=$("#lobby");if(lb)lb.hidden=false;renderLobby();loadLobbyOP(false)}
+function closeLobby(){const lb=$("#lobby");if(lb)lb.hidden=true;const slot=$("#lbYtSlot");if(slot)slot.innerHTML=""}
 function renderDeck(){
  const dk=D();
  document.querySelectorAll("#ztabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.z===zone));
@@ -2533,6 +2691,11 @@ $("#homeBtn").onclick=openLobby;
 $("#lbDeckBtn").onclick=closeLobby;
 $("#lbPlay").onclick=()=>{closeLobby();$("#playBtn").click()};
 $("#lbTestBtn").onclick=()=>{$("#testHandBtn").click()};
+$("#lbDeckSel").onchange=e=>{S.cur=+e.target.value;lbRandNo=null;save();renderDeck();updateCounts();renderLobby()};
+$("#lbRandAce").onclick=()=>{const r=pickRandomAce();if(r){lbRandNo=r.no;renderLobby()}};
+$("#lbYtNext").onclick=()=>{lbOpOn=true;lsSet("vg.lbOpOn",true);loadLobbyOP(true)};
+$("#lbYtMute").onclick=()=>{lbOpMuted=!lbOpMuted;loadLobbyOP(false)};
+$("#lbYtTog").onclick=()=>{lbOpOn=!lbOpOn;lsSet("vg.lbOpOn",lbOpOn);loadLobbyOP(false)};
 $("#deckName").oninput=e=>{D().name=e.target.value||"เด็ค";save();const o=$("#deckSel").selectedOptions[0];if(o)o.textContent=D().name};
 $("#newDeck").onclick=()=>{S.decks.push({name:"เด็คใหม่ "+(S.decks.length+1),main:{},ride:{},g:{},ace:null});S.cur=S.decks.length-1;save();renderDeck();updateCounts()};
 $("#dupDeck").onclick=()=>{const d=D();S.decks.push({name:d.name+" (สำเนา)",main:{...d.main},ride:{...d.ride},g:{...d.g},ace:d.ace});S.cur=S.decks.length-1;save();renderDeck();updateCounts();flash("คัดลอกเด็คแล้ว")};
