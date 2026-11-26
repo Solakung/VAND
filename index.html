@@ -4027,8 +4027,13 @@ function parseAbility(line){
    continue;
   }
   if(started&&/^at the end of that (?:battle|turn)$/i.test(c)&&i+1<cl.length){
-   const sub=parseAbility("[ACT]:"+cl.slice(i+1).join(", ").replace(/§COST(\d)§/g,"").trim());
-   if(sub&&!sub.manualRest&&sub.steps.length&&!sub.hasAsk&&!sub.steps.some(x=>x.t==="cost")){r.steps.push({t:"later",when:/turn/i.test(c)?"turn":"battle",steps:sub.steps});break}
+   const costList=[];
+   const subTxt=cl.slice(i+1).map(x=>x.replace(/§COST(\d)§/g,(_,k)=>{costList.push(costs[+k]);return""})).join(", ").trim();
+   const sub=parseAbility("[ACT]:"+subTxt);
+   if(sub&&!sub.manualRest&&sub.steps.length&&!sub.hasAsk&&!costList.some(it=>it.some(z=>z.t==="manual"))){
+    const lSteps=[...sub.conds.map(cn=>({t:"if",cond:cn})),...costList.map(items=>({t:"cost",items})),...sub.steps];
+    r.steps.push({t:"later",when:/turn/i.test(c)?"turn":"battle",steps:lSteps});break;
+   }
   }
   const prevSt=r.steps[r.steps.length-1];
   if(prevSt&&prevSt.t==="solraironDeclare"&&/^reveal the top card of your deck$/i.test(c))continue;
@@ -5872,7 +5877,9 @@ async function payCost(items,ctx){
    let pick=[...grades.values()].slice(0,c.n);
    if(!bot&&P.soul.length>=c.n){const chosen=await chooseCards(`โซลบลาสต์ ${c.n} ใบที่มีเกรดต่างกัน`,P.soul,c.n,"เลือกการ์ดจากโซลที่เกรดไม่ซ้ำกัน",{diffGrade:true});if(chosen&&chosen.length===c.n)pick=chosen}
    ctx.sbCards=pick.slice();if(ctx.where==="VC")P.maxVgSbTurn=Math.max(P.maxVgSbTurn||0,pick.length);
-   pick.forEach(x=>moveCard(x,"drop"));if(cd(u).name.includes("Drajeweled"))showArchFX("drajeweled",{count:pick.length});
+   for(const x of pick){const wasTrig=!!cd(x).trig;moveCard(x,"drop");if(!G.over)await fire("soulToDrop",s,x,{where:"Drop"});if(wasTrig&&!G.over&&whereIs(u))await fire("sbTrigSelf",s,u,{where:ctx.where,k:ctx.k})}
+   if(cd(u).name.includes("Drajeweled"))showArchFX("drajeweled",{count:pick.length});
+   if(!G.over&&pick.length>=2){for(const[k2,u2]of units(s)){if(G.over)break;if(whereIs(u2))await fire("sbVgBatch",s,u2,{where:k2==="VC"?"VC":"RC",k:k2,sbCount:pick.length,sbCards:ctx.sbCards})}}
   }
   else if(c.t==="backRgToSoul"){
    const isOmina=P.c.VC&&cd(P.c.VC).name.includes("Ominagruzio");
