@@ -1881,12 +1881,193 @@ button,.ch,.cell,.tile,.mc,.zb{touch-action:manipulation;-webkit-tap-highlight-c
 .bgl-bar{width:100%;height:6px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
 .bgl-fill{height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#2dd4bf,#38bdf8);transition:width .2s ease-out}
 
+
+/* =====================  v25: VISUAL CARD GRID & TITLE LOBBY  ===================== */
+#lobby{
+ position:fixed;inset:0;z-index:16;overflow:auto;
+ background:
+  radial-gradient(ellipse at 22% 18%,rgba(56,189,248,.18) 0%,transparent 52%),
+  radial-gradient(ellipse at 82% 82%,rgba(244,63,94,.16) 0%,transparent 54%),
+  linear-gradient(180deg,rgba(255,255,255,.02) 1px,transparent 1px) 0 0/100% 36px,
+  linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px) 0 0/36px 100%,
+  radial-gradient(ellipse at 50% 40%,#131f36 0%,#080d17 72%,#04070d 100%);
+ display:flex;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top,0px)) 16px max(20px,env(safe-area-inset-bottom,0px));
+}
+.lb-wrap{
+ width:min(920px,100%);display:grid;grid-template-columns:1.05fr 1fr;gap:22px;align-items:center;
+}
+.lb-hero{
+ display:flex;flex-direction:column;gap:14px;
+}
+.lb-brand{
+ display:flex;flex-direction:column;gap:4px;
+}
+.lb-brand small{
+ font-size:11px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);
+}
+.lb-brand h1{
+ margin:0;font-size:clamp(28px,5vw,44px);font-weight:900;font-style:italic;letter-spacing:.04em;line-height:1.05;
+ color:#fff;text-shadow:0 4px 24px rgba(56,189,248,.35);
+}
+.lb-brand h1 b{color:#ef4444}
+.lb-brand p{margin:4px 0 0;color:#94a3b8;font-size:13px}
+
+/* Active Deck Showcase */
+.lb-deck{
+ display:flex;gap:14px;align-items:center;padding:12px;border-radius:14px;
+ background:rgba(15,23,42,.82);border:1.5px solid rgba(148,163,184,.25);
+ box-shadow:0 14px 36px rgba(0,0,0,.55);backdrop-filter:blur(8px);
+}
+.lb-cover{
+ width:86px;aspect-ratio:63/88;border-radius:8px;flex:0 0 auto;overflow:hidden;position:relative;
+ background:linear-gradient(155deg,#1e293b,#0f172a);border:1.5px solid rgba(251,191,36,.55);
+ box-shadow:0 8px 20px rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;
+ text-align:center;font-size:10px;color:#94a3b8;padding:4px;cursor:zoom-in;
+}
+.lb-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.lb-dmeta{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.lb-dmeta label{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8}
+.lb-dmeta select{
+ width:100%;background:rgba(6,11,20,.85);border:1px solid rgba(148,163,184,.32);
+ color:#f8fafc;font-weight:700;padding:6px 8px;border-radius:8px;
+}
+.lb-dstats{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+
+/* Lobby Action Menu */
+.lb-menu{display:flex;flex-direction:column;gap:12px}
+.lb-btn{
+ display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;text-align:left;
+ background:rgba(15,23,42,.86);border:1.5px solid rgba(148,163,184,.26);
+ color:#f8fafc;transition:transform .16s,border-color .16s,box-shadow .16s,background .16s;
+ box-shadow:0 10px 26px rgba(0,0,0,.45);
+}
+.lb-btn:hover{
+ transform:translateY(-2px);border-color:var(--acc);background:rgba(20,34,58,.95);
+ box-shadow:0 14px 32px rgba(56,189,248,.22);
+}
+.lb-btn.primary{
+ background:linear-gradient(135deg,#0ea5e9 0%,#2dd4bf 100%);
+ border:0;color:#04151f;box-shadow:0 12px 32px rgba(45,212,191,.35);
+}
+.lb-btn.primary:hover{
+ background:linear-gradient(135deg,#38bdf8 0%,#5eead4 100%);
+ box-shadow:0 16px 38px rgba(45,212,191,.5);
+}
+.lb-btn .lb-ico{
+ width:46px;height:46px;border-radius:12px;flex:0 0 auto;
+ display:flex;align-items:center;justify-content:center;font-size:24px;
+ background:rgba(255,255,255,.1);
+}
+.lb-btn.primary .lb-ico{background:rgba(4,21,31,.16)}
+.lb-btn .lb-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.lb-btn .lb-txt b{font-size:17px;font-weight:900;letter-spacing:.02em}
+.lb-btn .lb-txt small{font-size:12px;opacity:.82}
+.lb-foot{
+ display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;
+ font-size:11.5px;color:#64748b;margin-top:4px;
+}
+
+/* Visual Card Grid Mode (Full-Art Tiles) */
+.grid.imgmode{
+ grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:10px;
+}
+.tile.vtile{
+ padding:0;border:1.5px solid var(--line);border-left:1.5px solid var(--line);
+ border-radius:9px;aspect-ratio:63/88;position:relative;overflow:hidden;
+ background:linear-gradient(160deg,#162033 0%,#0b101a 100%);
+ box-shadow:0 6px 16px rgba(0,0,0,.45);transition:transform .14s,border-color .14s,box-shadow .14s;
+}
+.tile.vtile:hover{
+ transform:translateY(-3px);border-color:var(--acc);box-shadow:0 10px 24px rgba(79,209,197,.25);
+}
+.tile.vtile.in-deck{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc),0 8px 20px rgba(79,209,197,.24)}
+.tile.vtile .vimg{
+ position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in;
+}
+.tile.vtile .vfb{
+ position:absolute;inset:0;padding:24px 8px 36px;display:flex;flex-direction:column;justify-content:center;gap:4px;
+ border-top:3px solid var(--nc,var(--n-other));cursor:zoom-in;
+}
+.tile.vtile .vfb b{font-size:12px;line-height:1.25;color:#f1f5f9;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tile.vtile .vfb small{font-size:10.5px;color:#94a3b8}
+.tile.vtile .vtop{
+ position:absolute;top:4px;left:4px;right:4px;z-index:2;display:flex;justify-content:space-between;align-items:center;pointer-events:none;
+}
+.tile.vtile .vg{
+ background:rgba(5,10,20,.86);border:1px solid var(--nc,rgba(255,255,255,.25));color:#fff;
+ font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;
+}
+.tile.vtile .vbadge{
+ background:var(--acc);color:#041e1b;font-size:10.5px;font-weight:900;
+ padding:1px 6px;border-radius:99px;box-shadow:0 2px 6px rgba(0,0,0,.7);display:none;
+}
+.tile.vtile.in-deck .vbadge{display:inline-block}
+.tile.vtile .vbot{
+ position:absolute;left:0;right:0;bottom:0;z-index:2;
+ padding:16px 5px 5px;
+ background:linear-gradient(180deg,transparent 0%,rgba(4,8,16,.86) 44%,rgba(4,8,16,.96) 100%);
+ display:flex;flex-direction:column;gap:4px;
+}
+.tile.vtile .vnm{
+ font-size:10.5px;font-weight:700;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ text-shadow:0 1px 3px #000;cursor:zoom-in;padding:0 2px;
+}
+.tile.vtile .vctrl{
+ display:flex;align-items:center;justify-content:space-between;gap:4px;
+}
+.tile.vtile .vctrl button{
+ flex:1;padding:2px 0;font-size:14px;font-weight:800;line-height:1.15;
+ background:rgba(30,41,59,.9);border:1px solid rgba(148,163,184,.35);border-radius:5px;
+}
+.tile.vtile .vctrl button:hover{border-color:var(--acc);background:rgba(30,58,86,.95)}
+.tile.vtile .vctrl b{
+ min-width:22px;text-align:center;font-size:12.5px;font-weight:900;color:#fff;font-variant-numeric:tabular-nums;
+}
+@media(max-width:820px){
+ .lb-wrap{grid-template-columns:1fr;gap:16px}
+ .grid.imgmode{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:7px}
+}
+
 </style>
 </head>
 <body>
+<div id="lobby" hidden>
+ <div class="lb-wrap">
+  <div class="lb-hero">
+   <div class="lb-brand">
+    <small>CARDFIGHT!! VANGUARD · OVERDRESS</small>
+    <h1><b>V</b>ANGUARD D-LAB</h1>
+    <p>จำลองการดวลและจัดเด็ค D-Series ครบถึง D-BT13 พร้อมระบบสกิลอัตโนมัติและห้องออนไลน์</p>
+   </div>
+   <div class="lb-deck">
+    <div class="lb-cover" id="lbCover">ไม่มีรูปปก</div>
+    <div class="lb-dmeta">
+     <label for="lbDeckSel">เด็คที่ใช้งานอยู่</label>
+     <select id="lbDeckSel" aria-label="เลือกเด็คหน้าแรก"></select>
+     <div class="lb-dstats" id="lbStats"></div>
+    </div>
+   </div>
+   <div class="lb-foot"><span id="lbCardStat"></span><span id="lbImgStat"></span></div>
+  </div>
+  <div class="lb-menu">
+   <button class="lb-btn primary" id="lbPlay">
+    <span class="lb-ico">⚔️</span>
+    <span class="lb-txt"><b>เริ่มดวล (Play)</b><small>สู้บอต · เล่น 2 คน · สร้าง/เข้าห้องออนไลน์</small></span>
+   </button>
+   <button class="lb-btn" id="lbDeckBtn">
+    <span class="lb-ico">🃏</span>
+    <span class="lb-txt"><b>จัดเด็ค & คลังการ์ด (Deck Lab)</b><small>ดูการ์ดแบบรูปภาพเต็มใบ จัดเด็คหลัก / ไรด์เด็ค / G เด็ค</small></span>
+   </button>
+   <button class="lb-btn" id="lbTestBtn">
+    <span class="lb-ico">🎴</span>
+    <span class="lb-txt"><b>เทสต์มือ (Hand Tester)</b><small>สุ่มจั่วมือ 5 ใบ + ทดลองมัลลิแกนก่อนลงสนามจริง</small></span>
+   </button>
+  </div>
+ </div>
+</div>
 <div id="app" data-v="cards">
  <header>
-  <h1>D-Series Deck Lab</h1><span id="stat" class="meta" style="color:var(--mute);font-size:12px"></span>
+  <button id="homeBtn" title="กลับหน้าแรก">🏠</button><h1>D-Series Deck Lab</h1><span id="stat" class="meta" style="color:var(--mute);font-size:12px"></span>
   <span class="sp"></span>
   <button id="testHandBtn" title="สุ่มจั่วมือ 5 ใบ + ลองมัลลิแกนในหน้าจัดเด็ค">🃏 เทสต์มือ</button>
   <button id="playBtn" class="big">เล่น ▶</button>
@@ -1911,6 +2092,7 @@ button,.ch,.cell,.tile,.mc,.zb{touch-action:manipulation;-webkit-tap-highlight-c
    <select id="fGr"><option value="">ทุกเกรด</option></select>
    <select id="fTy"><option value="">ทุกชนิด</option></select>
    <select id="fRar"><option value="">ทุกระดับ</option></select>
+   <button id="viewTog" title="สลับมุมมองรูปภาพ / ข้อความ">🖼️ รูปภาพ</button>
   </div>
   <div class="grid" id="grid"></div>
  </section>
@@ -2084,7 +2266,7 @@ async function importBuf(buf,silent=false){
  }
  await Promise.all(pend);
  if(mag===m2)$("#loader").hidden=true;
- imgInfo();if(!silent)flash(`นำเข้า${mag===m2?` ${h.cards.length} การ์ด และ`:""}รูป ${n} ใบ`);
+ imgInfo();if(gridView==="img")paintGrid();renderLobby();if(!silent)flash(`นำเข้า${mag===m2?` ${h.cards.length} การ์ด และ`:""}รูป ${n} ใบ`);
  try{if(G&&!G.quit)render()}catch(e){}
 }
 $("#imgBtn").onclick=()=>{$("#imgMenu").hidden=!$("#imgMenu").hidden};
@@ -2182,7 +2364,16 @@ function validate(){
 
 /* ---------- render ---------- */
 function ncolor(c){return `var(${NAT[c.nation]||"--n-other"})`}
+let gridView=lsGet("vg.gridView","img");
 function tileHTML(c){
+ if(gridView==="img"){
+  const img=IMG[c.no];
+  const pw=c.power?`${c.power/1000}k`:"";
+  return `<div class="tile vtile" style="--nc:${ncolor(c)}" data-no="${c.no}">
+  ${img?`<img class="vimg" src="${img}" alt="${esc(c.name)}" loading="lazy" data-zoom="${c.no}">`:`<div class="vfb" data-zoom="${c.no}"><b>${esc(c.name)}</b><small>${c.no}${c.trig?" · "+c.trig:""}</small><small>${[pw&&"Pw "+pw,c.shield&&"Sh "+c.shield/1000+"k"].filter(Boolean).join(" · ")}</small></div>`}
+  <div class="vtop"><span class="vg">${c.grade==null?"–":"G"+c.grade}</span><span class="vbadge">0</span></div>
+  <div class="vbot"><div class="vnm" data-zoom="${c.no}" title="${esc(c.name)}">${esc(c.name)}</div><div class="vctrl"><button data-d="-1" aria-label="ลบ">−</button><b id="c-${cssid(c.no)}">0</b><button data-d="1" aria-label="เพิ่ม">+</button></div></div></div>`;
+ }
  const t=c.trig?`<span class="trg">${c.trig}</span>`:"";
  const pw=c.power?`${c.power/1000}k`:"";
  return `<div class="tile" style="--nc:${ncolor(c)}" data-no="${c.no}">
@@ -2201,8 +2392,12 @@ function filtered(){
   (!q||c.name.toLowerCase().includes(q)||c.no.toLowerCase().includes(q)||c.text.includes(q)||(c.race||"").toLowerCase().includes(q)));
 }
 function paintGrid(){
+ const g=$("#grid");
+ g.classList.toggle("imgmode",gridView==="img");
+ const vt=$("#viewTog");
+ if(vt)vt.textContent=gridView==="img"?"🖼️ รูปภาพ":"☰ ข้อความ";
  const slice=shown.slice(0,gridLimit);
- $("#grid").innerHTML=slice.length?(slice.map(tileHTML).join("")+(shown.length>gridLimit?`<button class="loadmore" id="loadMoreBtn">โหลดเพิ่ม (+60) · แสดงแล้ว ${slice.length} / ${shown.length} ใบ</button>`:"")):'<div class="empty" style="grid-column:1/-1">ไม่พบการ์ด</div>';
+ g.innerHTML=slice.length?(slice.map(tileHTML).join("")+(shown.length>gridLimit?`<button class="loadmore" id="loadMoreBtn">โหลดเพิ่ม (+60) · แสดงแล้ว ${slice.length} / ${shown.length} ใบ</button>`:"")):'<div class="empty" style="grid-column:1/-1">ไม่พบการ์ด</div>';
  const lm=$("#loadMoreBtn");
  if(lm)lm.onclick=()=>{gridLimit+=60;paintGrid()};
  updateCounts();
@@ -2214,9 +2409,42 @@ function renderGrid(){
 }
 function updateCounts(){
  const dk=D();
- document.querySelectorAll("#grid .tile").forEach(t=>{const no=t.dataset.no;const b=t.querySelector("b");b.textContent=dk[zone][no]||0;
-  const other=["main","ride","g"].reduce((a,z)=>a+(z===zone?0:(dk[z][no]||0)),0);b.title=other?"โซนอื่น "+other:""})
+ document.querySelectorAll("#grid .tile").forEach(t=>{
+  const no=t.dataset.no,n=dk[zone][no]||0;
+  const b=t.querySelector(".vctrl b, .cnt b");if(b)b.textContent=n;
+  const vb=t.querySelector(".vbadge");if(vb)vb.textContent="×"+n;
+  t.classList.toggle("in-deck",n>0);
+  const other=["main","ride","g"].reduce((a,z)=>a+(z===zone?0:(dk[z][no]||0)),0);
+  if(b)b.title=other?"โซนอื่น "+other:"";
+ });
 }
+function renderLobby(){
+ const lb=$("#lobby");if(!lb)return;
+ const dk=D();
+ const sel=$("#lbDeckSel");
+ if(sel)sel.innerHTML=S.decks.map((d,i)=>`<option value="${i}" ${i===S.cur?"selected":""}>${esc(d.name)}</option>`).join("");
+ // Pick cover card: highest-grade unit from ride deck, else main deck
+ const pickCover=()=>{
+  const rKeys=Object.keys(dk.ride).map(k=>BY[k]).filter(Boolean).sort((a,b)=>(b.grade||0)-(a.grade||0));
+  if(rKeys.length)return rKeys[0];
+  const mKeys=Object.keys(dk.main).map(k=>BY[k]).filter(Boolean).sort((a,b)=>(b.grade||0)-(a.grade||0));
+  return mKeys[0]||null;
+ };
+ const cov=pickCover(),cel=$("#lbCover");
+ if(cel){
+  if(cov&&IMG[cov.no]){cel.innerHTML=`<img src="${IMG[cov.no]}" alt="${esc(cov.name)}">`;cel.dataset.zoom=cov.no}
+  else if(cov){cel.innerHTML=`<span>${esc(cov.name)}</span>`;cel.dataset.zoom=cov.no}
+  else{cel.innerHTML="<span>ยังไม่มีการ์ด</span>";delete cel.dataset.zoom}
+ }
+ const nm=total("main"),nr=total("ride"),tot=nm+nr;
+ const st=$("#lbStats");
+ if(st)st.innerHTML=`<span class="chip ${tot===50?"ok":"warn"}">รวม ${tot}/50</span><span class="chip ${nr>=4?"ok":"warn"}">ไรด์ ${nr}</span><span class="chip">${cov&&cov.nation?esc(cov.nation):"ยังไม่ระบุเนชัน"}</span>`;
+ const cs=$("#lbCardStat"),is=$("#lbImgStat");
+ if(cs)cs.textContent=CARDS.length?`ฐานข้อมูลการ์ด ${CARDS.length.toLocaleString()} ใบ`:"";
+ if(is){const n=Object.keys(imgBlobs).length;is.textContent=n?`รูปการ์ดพร้อมใช้ ${n.toLocaleString()} ใบ`:"กำลังโหลดรูปการ์ด…"}
+}
+function openLobby(){renderLobby();const lb=$("#lobby");if(lb)lb.hidden=false}
+function closeLobby(){const lb=$("#lobby");if(lb)lb.hidden=true}
 function renderDeck(){
  const dk=D();
  document.querySelectorAll("#ztabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.z===zone));
@@ -2298,7 +2526,13 @@ document.addEventListener("click",e=>{
 });
 let qTimer=0;$("#q").addEventListener("input",()=>{clearTimeout(qTimer);qTimer=setTimeout(renderGrid,180)});["fSet","fNat","fGr","fTy","fRar"].forEach(id=>$("#"+id).addEventListener("change",renderGrid));
 $("#ztabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b){zone=b.dataset.z;renderDeck();updateCounts()}});
-$("#deckSel").onchange=e=>{S.cur=+e.target.value;save();renderDeck();updateCounts()};
+$("#deckSel").onchange=e=>{S.cur=+e.target.value;save();renderDeck();updateCounts();renderLobby()};
+$("#lbDeckSel").onchange=e=>{S.cur=+e.target.value;save();renderDeck();updateCounts();renderLobby()};
+$("#viewTog").onclick=()=>{gridView=gridView==="img"?"text":"img";lsSet("vg.gridView",gridView);paintGrid()};
+$("#homeBtn").onclick=openLobby;
+$("#lbDeckBtn").onclick=closeLobby;
+$("#lbPlay").onclick=()=>{closeLobby();$("#playBtn").click()};
+$("#lbTestBtn").onclick=()=>{$("#testHandBtn").click()};
 $("#deckName").oninput=e=>{D().name=e.target.value||"เด็ค";save();const o=$("#deckSel").selectedOptions[0];if(o)o.textContent=D().name};
 $("#newDeck").onclick=()=>{S.decks.push({name:"เด็คใหม่ "+(S.decks.length+1),main:{},ride:{},g:{},ace:null});S.cur=S.decks.length-1;save();renderDeck();updateCounts()};
 $("#dupDeck").onclick=()=>{const d=D();S.decks.push({name:d.name+" (สำเนา)",main:{...d.main},ride:{...d.ride},g:{...d.g},ace:d.ace});S.cur=S.decks.length-1;save();renderDeck();updateCounts();flash("คัดลอกเด็คแล้ว")};
@@ -2479,7 +2713,7 @@ async function loadHostedImgParts(){
    await idbSet("imgPart:"+p,1);
    loadedAny=true;
    updateUI(1);
-   if(zno&&!$("#zoom").hidden)paintZoom();
+   if(zno&&!$("#zoom").hidden)paintZoom();if(gridView==="img")paintGrid();renderLobby();
   }catch(e){break}
  }
  if(el&&loadedAny){
@@ -2498,7 +2732,7 @@ async function loadHostedImgParts(){
   raw=await idbGet("cards");
  }
  if(raw&&raw.length){
-  setCards(raw);$("#loader").hidden=true;
+  setCards(raw);$("#loader").hidden=true;openLobby();
   loadHostedImgParts();
  }else{renderBuilder()}
 })();
