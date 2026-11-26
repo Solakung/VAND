@@ -473,6 +473,76 @@ button,.ch,.cell,.tile,.mc,.zb{touch-action:manipulation;-webkit-tap-highlight-c
 }
 #cutin .ci-t{font-size:clamp(22px,5.2vw,38px);font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.85),0 0 18px var(--ci-ln,#fbbf24)}
 #cutin .ci-s{font-size:clamp(12px,2.4vw,15px);font-weight:600;color:#fef3c7;margin-top:2px;letter-spacing:.04em;text-shadow:0 1px 4px #000}
+/* =====================  v29: KEY VANGUARD ANIME SUMMON CUT-IN  ===================== */
+#cutin.summon-mode{
+ pointer-events:auto;cursor:pointer;
+ background:radial-gradient(circle at 50% 50%,rgba(6,10,22,.45),rgba(2,4,10,.88));
+ backdrop-filter:blur(3px);
+}
+.sm-wrap{
+ position:relative;width:112%;padding:clamp(14px,2.8vh,26px) clamp(18px,5vw,60px);
+ transform:rotate(-2.4deg);
+ background:linear-gradient(95deg,transparent 0%,var(--sm-a,#0f172a) 14%,var(--sm-b,#1e293b) 50%,var(--sm-a,#0f172a) 86%,transparent 100%);
+ border-top:2.5px solid var(--sm-ln,#fbbf24);border-bottom:2.5px solid var(--sm-ln,#fbbf24);
+ box-shadow:0 0 60px var(--sm-gl,rgba(251,191,36,.6)),inset 0 0 40px rgba(0,0,0,.55);
+ display:flex;align-items:center;justify-content:center;gap:clamp(14px,3.2vw,34px);
+ overflow:hidden;animation:smBand 1.45s cubic-bezier(.16,1,.3,1) forwards;
+}
+.sm-wrap::before{
+ content:"";position:absolute;inset:0;pointer-events:none;
+ background:repeating-linear-gradient(-45deg,rgba(255,255,255,.04) 0 3px,transparent 3px 16px);
+}
+.sm-rune{
+ position:absolute;left:22%;top:50%;width:clamp(180px,28vw,310px);aspect-ratio:1;
+ transform:translate(-50%,-50%);color:var(--sm-ln,#fbbf24);opacity:.26;
+ pointer-events:none;animation:lbSpin 16s linear infinite;
+}
+.sm-art{
+ position:relative;z-index:2;width:clamp(108px,16vw,164px);aspect-ratio:63/88;
+ border-radius:10px;overflow:hidden;flex:0 0 auto;
+ border:2px solid var(--sm-ln,#fbbf24);
+ box-shadow:0 12px 34px rgba(0,0,0,.85),0 0 28px var(--sm-gl,rgba(251,191,36,.7));
+ animation:smArtIn 1.45s cubic-bezier(.16,1,.3,1) forwards;
+}
+.sm-art img{width:100%;height:100%;object-fit:cover;display:block;animation:smZoom 1.45s ease-out forwards}
+.sm-info{
+ position:relative;z-index:2;text-align:left;max-width:min(540px,62vw);
+ display:flex;flex-direction:column;gap:4px;
+}
+.sm-tag{
+ display:inline-block;align-self:flex-start;padding:2px 10px;border-radius:99px;
+ font-size:clamp(10px,1.5vw,12px);font-weight:900;letter-spacing:.16em;text-transform:uppercase;
+ background:var(--sm-ln,#fbbf24);color:#090d16;box-shadow:0 0 14px var(--sm-gl,rgba(251,191,36,.7));
+}
+.sm-chant{
+ font-size:clamp(12px,2vw,16px);font-style:italic;font-weight:700;color:#fef3c7;
+ text-shadow:0 2px 8px rgba(0,0,0,.9);line-height:1.3;
+}
+.sm-name{
+ font-size:clamp(18px,3.4vw,32px);font-weight:900;letter-spacing:.04em;color:#fff;line-height:1.1;
+ text-shadow:0 3px 14px rgba(0,0,0,.9),0 0 20px var(--sm-ln,#fbbf24);
+}
+.sm-sub{font-size:clamp(11px,1.6vw,13px);color:#cbd5e1;font-weight:600}
+@keyframes smBand{
+ 0%{opacity:0;transform:translateX(-16%) rotate(-2.4deg) scaleY(.82)}
+ 14%{opacity:1;transform:translateX(0) rotate(-2.4deg) scaleY(1.02)}
+ 82%{opacity:1;transform:translateX(0) rotate(-2.4deg) scaleY(1)}
+ 100%{opacity:0;transform:translateX(12%) rotate(-2.4deg) scaleY(.95)}
+}
+@keyframes smArtIn{
+ 0%{opacity:0;transform:scale(1.35) translateX(-24px)}
+ 18%{opacity:1;transform:scale(1.02) translateX(0)}
+ 85%{opacity:1;transform:scale(1) translateX(0)}
+ 100%{opacity:0;transform:scale(.95) translateX(16px)}
+}
+@keyframes smZoom{0%{transform:scale(1.18)}100%{transform:scale(1)}}
+@media(max-width:600px){
+ .sm-wrap{flex-direction:column;text-align:center;gap:10px;padding:14px 16px}
+ .sm-info{align-items:center;text-align:center;max-width:92vw}
+ .sm-tag{align-self:center}
+ .sm-art{width:104px}
+}
+
 @keyframes ciSlide{
  0%{opacity:0;transform:translateX(-18%) rotate(-2.2deg) scale(.94)}
  16%{opacity:1;transform:translateX(0) rotate(-2.2deg) scale(1.02)}
@@ -4995,7 +5065,7 @@ async function doRide(s,u,from,disc,opts){
  for(const x of P.arms.slice()){const a=armSide(x);if(!a||a.name!==c.name)moveCard(x,"drop")}
  P.rodeThisTurn=true;if(opts.superior)P.rodeByEffTurn=true;P.rodeFromName=oc.name;if((oc.grade||0)===3)P.rodeFromG3=true;if((c.grade||0)>=3)P.rodeG3ThisTurn=true;
  pushFeed(s,persona?"PERSONA RIDE":"RIDE",c.name,u.no);log(`${SIDE[s]}ไรด์ ${c.name} (G${c.grade})${opts.superior?` ด้วยสกิล${opts.by==="revol"?" RevolDress":""}`:from==="ride"?` จากไรด์เด็ค ทิ้ง ${disc?cd(disc).name:"-"}`:" จากมือ"}`);
- if(persona){draw(s,1);P.persona=true;P.personaCount=(P.personaCount||0)+1;P.personaRode=true;if(G.stats)G.stats.persona[s]++;SFX.epic();showCutin("PERSONA RIDE!",`${c.name} · จั่ว 1 / แถวหน้า +10,000`,"persona");log(`${SIDE[s]} Persona Ride (x${P.personaCount}): จั่ว 1 ใบ ยูนิตแถวหน้า +10000 จนจบเทิร์น`)}else if(opts.by==="revol"){SFX.epic();const fm=/Zest/i.test(c.name)?"zest":/Gust/i.test(c.name)?"gust":/Tempest/i.test(c.name)?"tempest":"full";showArchFX("revol",{form:fm});showCutin("REVOLDRESS!",c.name,"revol");BGM.triggerClimax(s,"RevolDress")}else if(c.name.includes("Thegrea")&&oc.name.includes("Thegrea")){showArchFX("thegrea")}else if(c.name.includes("Masques")){SFX.epic();showCutin("MASQUES RIDE!",c.name,"masques")}else SFX.ride();
+ if(persona){draw(s,1);P.persona=true;P.personaCount=(P.personaCount||0)+1;P.personaRode=true;if(G.stats)G.stats.persona[s]++;SFX.epic();showSummonCutin(u,"PERSONA RIDE! · จั่ว 1 / แถวหน้า +10,000");log(`${SIDE[s]} Persona Ride (x${P.personaCount}): จั่ว 1 ใบ ยูนิตแถวหน้า +10000 จนจบเทิร์น`)}else if(opts.by==="revol"){SFX.epic();const fm=/Zest/i.test(c.name)?"zest":/Gust/i.test(c.name)?"gust":/Tempest/i.test(c.name)?"tempest":"full";showArchFX("revol",{form:fm});showSummonCutin(u,"REVOLDRESS!");BGM.triggerClimax(s,"RevolDress")}else if(c.name.includes("Thegrea")&&oc.name.includes("Thegrea")){SFX.epic();showArchFX("thegrea");showSummonCutin(u,"LIGHT & DARK RIDE!")}else if(c.name.includes("Masques")){SFX.epic();showSummonCutin(u,"MASQUES RIDE!")}else if((c.grade||0)>=3){SFX.epic();showSummonCutin(u,"VANGUARD RIDE!")}else SFX.ride();
  render();await pause(.5);
  if(from==="ride"&&disc)await fire("discarded",s,disc,{where:"Drop",phase:"ride"});
  await fire("rode",s,old,{where:"Soul",by:u});remind(s,old,"rodeUpon");
@@ -5062,7 +5132,7 @@ async function strideStep(s){
  pay.forEach(x=>moveCard(x,"drop"));
  const old=P.c.VC;P.gz.splice(P.gz.indexOf(g),1);resetUnit(g);g.down=false;g.rest=old.rest;
  P.heart.push(old);P.c.VC=g;
- SFX.epic();showCutin("STRIDE GENERATION!",cd(g).name,"stride");log(`${SIDE[s]}สไตรด์ ${cd(g).name} ทับ ${cd(old).name} (ทิ้ง ${pay.map(x=>cd(x).name).join(", ")})`);render();await pause(.6);
+ SFX.epic();showSummonCutin(g,"STRIDE GENERATION!");log(`${SIDE[s]}สไตรด์ ${cd(g).name} ทับ ${cd(old).name} (ทิ้ง ${pay.map(x=>cd(x).name).join(", ")})`);render();await pause(.6);
  for(const x of pay){if(G.over)break;await fire("discardStride",s,x,{where:"Drop"});if(!G.over&&P.drop.includes(x))await fire("discarded",s,x,{where:"Drop",phase:"ride"})}
  if(!G.over)await fire("gStride",s,old,{where:"VC",k:"VC"});
  if(!G.over)await fire("place_vc",s,g,{where:"VC",k:"VC",from:"gz"});
@@ -6973,6 +7043,73 @@ function showCutin(title,sub="",style="persona",fromNet=false){
  el.innerHTML=`<div class="ci-bar" style="--ci-a:${a};--ci-b:${b};--ci-ln:${ln};--ci-gl:${gl}"><div class="ci-t">${esc(title)}</div>${sub?`<div class="ci-s">${esc(sub)}</div>`:""}</div>`;
  clearTimeout(ciTimer);ciTimer=setTimeout(()=>{el.hidden=true;el.innerHTML=""},920);
 }
+
+const KEY_CHANTS=[
+ [/Drajeweled Masques/i,"จงกลืนกินทุกสรรพสิ่งด้วยพลังแห่งหน้ากาก!","masques"],
+ [/Drajeweled/i,"อัญมณีทั้งสี่เอ๋ย จงส่องประกายและบดขยี้พลังของศัตรู!","dark"],
+ [/Youthberk.*Full Blast/i,"รวมพลังแห่งพายุ เปลวเพลิง และสายฟ้า — RevolForm: Full Blast!","revol"],
+ [/Youthberk/i,"ทะลายฟ้าที่ปิดกั้น จงปลดปล่อยปีกแห่งการปฏิวัติ!","revol"],
+ [/Nirvana Jheva|Mahar Nirvana/i,"เปลวเพลิงแห่งคำอธิษฐาน จงลุกโชนเหนือฟากฟ้า!","dragon"],
+ [/Nirvana/i,"สายสัมพันธ์แห่งเปลวเพลิง จงประสานเป็นหนึ่งเดียว!","dragon"],
+ [/Bavsargra/i,"เปลวไฟแห่งการปิดผนึก จงสวมใส่อาวุธแห่งทวยเทพ!","dragon"],
+ [/Dragonic Overlord/i,"เปลวเพลิงนิรันดร์เอ๋ย จงเผาผลาญทุกสิ่งที่ขวางหน้า!","dragon"],
+ [/Gandeeva/i,"ศรเพลิงสีชาดเอ๋ย จงทะลวงสนามรบให้เป็นจุณ!","dragon"],
+ [/Bruce/i,"ถึงเวลาเร่งเครื่องเต็มพิกัดแล้ว — Final Rush!","dark"],
+ [/Ominagruzio/i,"เนตรมารเอ๋ย จงสาปแช่งและผนึกชะตากรรมของมัน!","dark"],
+ [/Greedon/i,"ความปรารถนาอันไร้ที่สิ้นสุด จงกลืนกินทุกสิ่ง!","dark"],
+ [/Chronojet/i,"ก้าวข้ามห้วงเวลา ทะยานสู่อนาคตแห่งชัยชนะ!","stride"],
+ [/Bastion/i,"ดาบแห่งเกียรติยศ จงนำพากองทัพสู่ชัยชนะ!","keter"],
+ [/Thegrea/i,"แสงสว่างและความมืด จงหลอมรวมเป็นหนึ่งเดียว!","keter"],
+ [/Alden/i,"คมดาบที่เชื่อมฟ้าและดิน จงฟาดฟันอุปสรรค!","keter"],
+ [/Seraph/i,"อาชญากรทั้งหลาย จงยอมจำนนต่อกรงขังแห่งแสง!","brandt"],
+ [/Gravidia/i,"ฝนดาวตกจากห้วงอวกาศ จงถล่มลงมาให้สิ้น!","brandt"],
+ [/Orfist/i,"ความมืดมิดอันไร้ก้นบึ้ง จงกลืนกินโลกใบนี้!","brandt"],
+ [/Welstra/i,"เปิดระบบปฏิบัติการเต็มรูปแบบ — Blitz CEO ออกโรง!","brandt"],
+ [/Eva/i,"ผลการวิจัยเสร็จสมบูรณ์ จงประจักษ์แก่พลังใหม่!","brandt"],
+ [/Messiah/i,"ปลดพันธนาการแห่งโลกา จงถือกำเนิดใหม่!","stride"],
+ [/Magnolia/i,"เสียงคำรามแห่งพงไพร จงปลุกสัญชาตญาณสัตว์ป่า!","stoicheia"],
+ [/Lianorn/i,"ท่วงทำนองแห่งมวลบุปผา จงบรรเลงประสานเสียง!","stoicheia"],
+ [/Zorga/i,"ศาสตร์แปรธาตุต้องห้าม จงปลุกวิญญาณจากหลุมศพ!","stoicheia"],
+ [/Griphogila/i,"ต้นไม้มังกรแห่งการทำลายล้าง จงแผ่กิ่งก้านกลืนโลก!","masques"],
+ [/Kairi|Astesice|Luticia|Wilista|Petralka|Krysrain/i,"เวทีนี้เป็นของพวกเราแล้ว — แสดงไลฟ์ให้สุดเหวี่ยงเลย!","lyrical"]
+];
+const NAT_SM={
+ "Dragon Empire":["#450a0a","#b91c1c","#fb923c","rgba(249,115,22,.7)"],
+ "Dark States":["#2e1065","#6b21a8","#c084fc","rgba(168,85,247,.7)"],
+ "Keter Sanctuary":["#422006","#a16207","#fde047","rgba(250,204,21,.7)"],
+ "Brandt Gate":["#082f49","#0369a1","#38bdf8","rgba(56,189,248,.7)"],
+ "Stoicheia":["#052e16","#15803d","#4ade80","rgba(74,222,128,.7)"],
+ "Lyrical Monasterio":["#500724","#be185d","#f472b6","rgba(244,114,182,.75)"]
+};
+function showSummonCutin(u,tag="RIDE!",fromNet=false){
+ if(!u||!G||G.quit)return;
+ const c=cd(u);if(!c)return;
+ if(!fromNet&&isOnline()&&!isGuest())netPushFX({kind:"summon",no:u.no,tag});
+ const el=$("#cutin");if(!el)return;
+ const hit=KEY_CHANTS.find(([re])=>re.test(c.name));
+ const chant=hit?hit[1]:(c.body[c.body.length-1]&&!/^\[/.test(c.body[c.body.length-1])?c.body[c.body.length-1]:"");
+ const stKey=hit?hit[2]:null;
+ const pal=(stKey&&CI_STYLE[stKey])||(c.nation&&NAT_SM[c.nation])||CI_STYLE.persona;
+ const[a,b,ln,gl]=pal;
+ const img=IMG[u.no];
+ el.classList.add("summon-mode");
+ el.hidden=false;
+ el.innerHTML=`<div class="sm-wrap" style="--sm-a:${a};--sm-b:${b};--sm-ln:${ln};--sm-gl:${gl}">
+  <svg class="sm-rune" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="94" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="10 6"/><polygon points="100,14 174,143 26,143" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7"/><polygon points="100,186 26,57 174,57" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7"/></svg>
+  ${img?`<div class="sm-art"><img src="${img}" alt="${esc(c.name)}"></div>`:""}
+  <div class="sm-info">
+   <span class="sm-tag">${esc(tag)}</span>
+   ${chant?`<div class="sm-chant">“${esc(chant)}”</div>`:""}
+   <div class="sm-name">${esc(c.name)}</div>
+   <div class="sm-sub">G${c.grade??"-"} · ${esc(c.nation||"Nationless")}${c.power?` · Power ${c.power.toLocaleString()}`:""}</div>
+  </div>
+ </div>`;
+ const close=()=>{el.hidden=true;el.innerHTML="";el.classList.remove("summon-mode");el.onclick=null};
+ el.onclick=close;
+ clearTimeout(ciTimer);
+ ciTimer=setTimeout(close,1420);
+}
+
 function showArchFX(type,opts={},fromNet=false){
  if(!fromNet&&isOnline()&&!isGuest())netPushFX({kind:"arch",type,opts});
  const root=$("#archFx");if(!root||!G||G.quit)return;
