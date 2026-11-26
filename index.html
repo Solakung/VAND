@@ -8,7 +8,7 @@
 <title>D-Series Deck Lab</title>
 <style>
 :root{--bg:#0f1218;--panel:#171c26;--panel2:#1e2531;--line:#2a3342;--fg:#e6eaf2;--mute:#8a95a9;--acc:#4fd1c5;--ok:#58d68d;--bad:#ff6b6b;--warn:#f5b041;
---n-dragon:#e0533d;--n-dark:#8e5bd6;--n-keter:#e3b341;--n-brandt:#4a90e2;--n-stoi:#3fb27f;--n-other:#8a95a9}
+--n-dragon:#e0533d;--n-dark:#8e5bd6;--n-keter:#e3b341;--n-brandt:#4a90e2;--n-stoi:#3fb27f;--n-lyrical:#f472b6;--n-other:#8a95a9}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{height:100%;margin:0}
@@ -310,6 +310,12 @@ button,.ch,.cell,.tile,.mc,.zb{touch-action:manipulation;-webkit-tap-highlight-c
  --mat-me:radial-gradient(130% 105% at 50% 8%,#154a36 0%,#0d2e22 55%,#071a13 100%);
  --mat-opp:radial-gradient(130% 105% at 50% 92%,#243224 0%,#141f16 55%,#0a110b 100%);
  --mat-bdr:#3fb27f;--mat-bdr-opp:#4b6e52;--ring-r:#4ade80;--ring-v:#fb923c;
+}
+#play[data-theme="lyrical"]{
+ --arena-bg:radial-gradient(ellipse at 50% 50%,#2b1224 0%,#160914 72%,#090408 100%);
+ --mat-me:radial-gradient(130% 105% at 50% 8%,#5c1d45 0%,#361029 55%,#1c0816 100%);
+ --mat-opp:radial-gradient(130% 105% at 50% 92%,#331b42 0%,#1f1029 55%,#100816 100%);
+ --mat-bdr:#f472b6;--mat-bdr-opp:#8b5cf6;--ring-r:#f9a8d4;--ring-v:#fb7185;
 }
 #pbar{background:rgba(9,13,22,.92);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.1)}
 #pboard{background:var(--arena-bg);position:relative}
@@ -1895,6 +1901,7 @@ button,.ch,.cell,.tile,.mc,.zb{touch-action:manipulation;-webkit-tap-highlight-c
 #lobby[data-nat="Keter Sanctuary"]{--lb-c:#facc15;--lb-c2:#f59e0b}
 #lobby[data-nat="Brandt Gate"]{--lb-c:#38bdf8;--lb-c2:#6366f1}
 #lobby[data-nat="Stoicheia"]{--lb-c:#34d399;--lb-c2:#10b981}
+#lobby[data-nat="Lyrical Monasterio"]{--lb-c:#f472b6;--lb-c2:#fb7185}
 
 /* Planet Cray Fallback Backdrop */
 .lb-cray{
@@ -2250,6 +2257,7 @@ button,.ch,.cell,.tile,.mc,.zb{touch-action:manipulation;-webkit-tap-highlight-c
   <b id="phase" hidden></b>
   <button id="pskin" title="อัปโหลดรูป Playmat / หลังการ์ดเอง">🖼️</button>
   <button id="ptheme" title="เปลี่ยนธีมสีสนาม">🎨</button>
+  <button id="pbgm" title="เปิด/ปิดเพลงประกอบสนาม (BGM / เพลงธีมประจำเด็ค)">🎵 BGM</button>
   <button id="psfx" title="เปิด/ปิดเสียงเอฟเฟกต์">🔊</button>
   <button id="pundo" title="ย้อนกลับไปต้นเฟสเมนของเทิร์นนี้" hidden>↩ ย้อนต้นเทิร์น</button>
   <button id="prestart" title="สับเด็คเริ่มใหม่ทันที">สับใหม่</button>
@@ -2290,6 +2298,7 @@ button,.ch,.cell,.tile,.mc,.zb{touch-action:manipulation;-webkit-tap-highlight-c
  <div id="archFx" aria-hidden="true"></div>
  <div id="cutin" hidden></div>
  <button id="gdResume" hidden>🛡 กลับมาหน้าป้องกัน</button>
+ <div id="bgmSlot" style="position:fixed;left:-9999px;top:-9999px;width:200px;height:200px;pointer-events:none"></div>
  <div id="pmodal" hidden></div>
  <input type="file" id="fMat0" accept="image/*" hidden>
  <input type="file" id="fMat1" accept="image/*" hidden>
@@ -2319,7 +2328,7 @@ button,.ch,.cell,.tile,.mc,.zb{touch-action:manipulation;-webkit-tap-highlight-c
 <script>
 "use strict";
 const $=s=>document.querySelector(s);
-const NAT={ "Dragon Empire":"--n-dragon","Dark States":"--n-dark","Keter Sanctuary":"--n-keter","Brandt Gate":"--n-brandt","Stoicheia":"--n-stoi"};
+const NAT={ "Dragon Empire":"--n-dragon","Dark States":"--n-dark","Keter Sanctuary":"--n-keter","Brandt Gate":"--n-brandt","Stoicheia":"--n-stoi","Lyrical Monasterio":"--n-lyrical"};
 const TRIG=/^(Critical|Draw|Stand|Heal|Front|Over)\b/;
 let CARDS=[],BY={};
 const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
@@ -4156,7 +4165,7 @@ function mkPlayer(deck){
 const dmgCount=s=>G.p[s].damage.length;
 const maxDmg=s=>(G&&G.p[s].c.VC&&cd(G.p[s].c.VC).name.includes("Greedon"))?7:6;
 function winCheck(){for(const s of[0,1]){const md=maxDmg(s);if(G.p[s].damage.length>=md){end(1-s,`${SIDE[s]}มีดาเมจครบ ${md}`);return true}}return !!G.over}
-function end(w,why){if(G.over)return;G.over={winner:w,why};log(`จบเกม: ${SIDE[w]}ชนะ (${why})`);const c=G.cancel,n=G.next;G.cancel=null;G.next=null;G.mode=null;G.manual=null;if(c)c();if(n)n();render()}
+function end(w,why){if(G.over)return;G.over={winner:w,why};BGM.stop();log(`จบเกม: ${SIDE[w]}ชนะ (${why})`);const c=G.cancel,n=G.next;G.cancel=null;G.next=null;G.mode=null;G.manual=null;if(c)c();if(n)n();render()}
 function draw(s,n=1){for(let i=0;i<n;i++){const P=G.p[s];if(!P.deck.length){end(1-s,`${SIDE[s]}ไม่มีการ์ดในเด็ค`);return false}P.hand.push(P.deck.shift())}if(G&&G.phase!=="setup"&&n>0)SFX.draw();return true}
 function units(s){const o=[];for(const k of CIRC){const u=G.p[s].c[k];if(u&&!u.locked)o.push([k,u])}return o}
 const canBackAtk=u=>{if(!u||u.locked)return false;if(u.backAtk||u.no==="TK/Momokke")return true;const w=whereIs(u);if(w){const P=G.p[w.s];if(P.c.VC&&cd(P.c.VC).name.includes("Magnolia Masques")&&G.turn===w.s&&P.mk[w.k])return true}return false};
@@ -4734,6 +4743,96 @@ function hostHandleGuestMsg(msg){
  }
 }
 
+/* =====================  v27: D-SERIES NATION BGM & CLIMAX INSERT SONGS  ===================== */
+const BGM_NATION={
+ "Dragon Empire":{id:"ux-MxO8UEEU",title:"Crucial Turn (Dragon Empire)"},
+ "Dark States":{id:"nbkCDBugN-o",title:"Parallactic Clash (Dark States)"},
+ "Keter Sanctuary":{id:"QPpIYyGii9w",title:"Fates Turn (Keter Sanctuary)"},
+ "Brandt Gate":{id:"hsevyPA3PwM",title:"One Foretold (Brandt Gate)"},
+ "Stoicheia":{id:"ajy7boG58Eo",title:"The Four-Colored Soul (Stoicheia)"},
+ "Lyrical Monasterio":{id:"Zfj6WAElJhg",title:"Vanguard Fight (Lyrical Monasterio)"},
+ "_default":{id:"CCOC3Dub9sY",title:"Showdown Begins"}
+};
+const BGM_DECKS=[
+ {re:/Youthberk/i,id:"KmolxaZhG48",title:"Breaking the Rock!! (Youthberk)"},
+ {re:/Nirvana|Vairina/i,id:"5VBErIeKovc",title:"He Said (Nirvana)"},
+ {re:/Bavsargra/i,id:"TrnD4l0OrxM",title:"erchiglhaad (Bavsargra)"},
+ {re:/Bruce|Diabolos/i,id:"VCO143uRj-4",title:"Silent Bark (Bruce)"},
+ {re:/Drajeweled|Bastion/i,id:"spe2fiA2UuU",title:"Caution (Drajeweled / Bastion)"},
+ {re:/Magnolia|Seraph/i,id:"K_03EO1KgAY",title:"Make a Splash! (Magnolia / Seraph)"},
+ {re:/Lianorn/i,id:"U_pZfxZRZi0",title:"Vidhelvasti (Lianorn)"},
+ {re:/Zorga/i,id:"6GaFpmqaKl0",title:"Into the Cemetery (Zorga)"},
+ {re:/Kairi|Astesice|Clarissa|Alestiel|Loronerol|Feltyrosa|Wilista|Luticia|Michu|Krysrain|Petralka/i,id:"Eo1RQQCYdvc",title:"Brand New!! (Lyrical Monasterio)"}
+];
+const BGM={
+ on:lsGet("vg.bgmOn",true),curId:null,curMode:null,curTitle:"",
+ ui(){
+  const b=$("#pbgm");if(!b)return;
+  if(!this.on){b.textContent="🔇 BGM";b.title="เปิดเพลงประกอบสนาม";return}
+  b.textContent=this.curMode==="climax"?"🔥 ธีมเด็ค":"🎵 BGM";
+  b.title=this.curTitle?`กำลังเล่น: ${this.curTitle} (คลิกเพื่อปิด)`:"เพลงประกอบสนาม (คลิกเพื่อปิด)";
+ },
+ play(track,mode){
+  if(!track)return;
+  this.curMode=mode;this.curTitle=track.title;
+  if(!this.on){this.stop(true);this.ui();return}
+  if(this.curId===track.id){this.ui();return}
+  this.curId=track.id;
+  const sl=$("#bgmSlot");
+  if(sl){
+   const src=`https://www.youtube.com/embed/${track.id}?autoplay=1&mute=0&controls=0&loop=1&playlist=${track.id}&rel=0&playsinline=1`;
+   sl.innerHTML=`<iframe src="${src}" allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+  }
+  this.ui();
+ },
+ stop(keepMeta=false){
+  const sl=$("#bgmSlot");if(sl)sl.innerHTML="";
+  this.curId=null;if(!keepMeta){this.curMode=null;this.curTitle=""}
+  this.ui();
+ },
+ deckTheme(s){
+  if(!G||!G.p[s]||!G.p[s].c.VC)return null;
+  const c=cd(G.p[s].c.VC);
+  const hit=BGM_DECKS.find(x=>x.re.test(c.name));
+  if(hit)return hit;
+  if(c.nation==="Lyrical Monasterio")return{id:"Eo1RQQCYdvc",title:"Brand New!! (Lyrical Monasterio)"};
+  return null;
+ },
+ nationTheme(s){
+  if(!G||!G.p[s]||!G.p[s].c.VC)return BGM_NATION._default;
+  const nat=cd(G.p[s].c.VC).nation;
+  return (nat&&BGM_NATION[nat])||BGM_NATION._default;
+ },
+ playBase(s){this.play(this.nationTheme(s),"base")},
+ onTurnStart(s){
+  if(!G||G.over)return;
+  const me=isOnline()?mySide():(G.cfg.bots[s]?0:s);
+  const oppDmg=G.p[1-s].damage.length,myDmg=G.p[s].damage.length;
+  const isClimax=(s===me)&&(oppDmg>=4||(myDmg>=4&&myDmg<maxDmg(s)));
+  const dt=isClimax?this.deckTheme(s):null;
+  if(dt){this.play(dt,"climax");log(`🎵 เพลงธีมประจำเด็คขึ้น!: ${dt.title}`)}
+  else this.playBase(me);
+ },
+ triggerClimax(s,reason){
+  if(!G||G.over)return;
+  const dt=this.deckTheme(s);
+  if(dt){this.play(dt,"climax");log(`🎵 ${reason?reason+" · ":""}เพลงธีมขึ้น!: ${dt.title}`)}
+ },
+ onTurnEnd(){
+  if(!G||G.over)return;
+  if(this.curMode==="climax"){
+   const me=isOnline()?mySide():0;
+   this.playBase(me);
+  }
+ },
+ toggle(){
+  this.on=!this.on;lsSet("vg.bgmOn",this.on);
+  if(!this.on)this.stop(true);
+  else if(G&&!G.over)this.onTurnStart(G.turn);
+  else this.ui();
+ }
+};
+
 /* ----- setup (8.2) ----- */
 async function startGame(cfg){
  uid=0;NET.askSide=0;
@@ -4797,7 +4896,7 @@ async function playTurn(s){
  if(!bot)G.rem=[];
  P.vg3=vgGrade(s)>=3;P.alch=false;
  for(const t of[0,1])for(const[k,u]of units(t)){u.used={};u.actCount={};u.trigModTurn=false}
- G.phase="stand";SFX.turn();pushFeed(s,"STAND / DRAW",`เทิร์น ${G.n}`);log(`— เทิร์น ${G.n}: ${SIDE[s]} —`);
+ G.phase="stand";SFX.turn();BGM.onTurnStart(s);pushFeed(s,"STAND / DRAW",`เทิร์น ${G.n}`);log(`— เทิร์น ${G.n}: ${SIDE[s]} —`);
  for(const[k,u]of units(s)){if(u.cantStand){u.cantStand=false;log(`${cd(u).name} ไม่สามารถสแตนด์ได้ในสแตนด์เฟสนี้!`)}else u.rest=false;u.stoodByEff=false;u.placedByAbility=false;u.attacksThisTurn=0}P.order.forEach(u=>u.rest=false);P.ordersPlayed=0;P.personaRode=false;P.personaCount=0;P.operated=false;P.extraArms=false;P.oppRet=0;P.myRet=0;P.scTurn=0;P.ccTurn=0;P.maxVgSbTurn=0;P.boostCountTurn=0;P.botDeckTurn=false;G.p[1-s].botDeckTurn=false;P.rodeThisTurn=false;P.rodeFromName=null;P.rodeFromG3=false;P.rodeG3ThisTurn=false;P.rodeByEffTurn=false;P.vgHitTurn=false;P.vgAttackedTurn=false;P.vgHitByOppTurn=false;P.blasterRetCost=0;P.rgDrive=false;P.nullTrigIcons=false;P.shieldMinusTrigIcons=false;P.noBlitzTurn=false;P.atkBackRow=false;P.moveSameRow=false;P.actCBRed=0;P.attachedThisTurn=false;P.cantRide=false;P.fromSoulCountTurn=0;P.placedFromDropTurn=false;P.rcToSoulCountTurn=0;P.vermilionMulti=false;P.bindOnHit=false;P.noRgFrontPow=0;G.p[0].battles=0;G.p[1].battles=0;sweep();render();await pause(.7);if(dead())return;
  G.phase="draw";if(!draw(s,1))return;pushFeed(s,"DRAW 1",`${SIDE[s]}จั่วการ์ด`);log(`${SIDE[s]}จั่ว 1 ใบ`);render();await pause(.55);if(dead())return;
  G.phase="ride";showPhaseBanner("RIDE PHASE",`เทิร์น ${G.n} · ${SIDE[s]}`);render();
@@ -4828,7 +4927,7 @@ async function playTurn(s){
   G.snap=null;P=G.p[s];
  }
  if(dead())return;
- G.phase="end";G.sel=null;G.mode=null;
+ G.phase="end";G.sel=null;G.mode=null;BGM.onTurnEnd();
  await fireAll(s,"endturn");if(dead())return;
  await fireAll(s,"endEachTurn");if(dead())return;
  await fireAll(1-s,"endEachTurn");if(dead())return;
@@ -4896,7 +4995,7 @@ async function doRide(s,u,from,disc,opts){
  for(const x of P.arms.slice()){const a=armSide(x);if(!a||a.name!==c.name)moveCard(x,"drop")}
  P.rodeThisTurn=true;if(opts.superior)P.rodeByEffTurn=true;P.rodeFromName=oc.name;if((oc.grade||0)===3)P.rodeFromG3=true;if((c.grade||0)>=3)P.rodeG3ThisTurn=true;
  pushFeed(s,persona?"PERSONA RIDE":"RIDE",c.name,u.no);log(`${SIDE[s]}ไรด์ ${c.name} (G${c.grade})${opts.superior?` ด้วยสกิล${opts.by==="revol"?" RevolDress":""}`:from==="ride"?` จากไรด์เด็ค ทิ้ง ${disc?cd(disc).name:"-"}`:" จากมือ"}`);
- if(persona){draw(s,1);P.persona=true;P.personaCount=(P.personaCount||0)+1;P.personaRode=true;if(G.stats)G.stats.persona[s]++;SFX.epic();showCutin("PERSONA RIDE!",`${c.name} · จั่ว 1 / แถวหน้า +10,000`,"persona");log(`${SIDE[s]} Persona Ride (x${P.personaCount}): จั่ว 1 ใบ ยูนิตแถวหน้า +10000 จนจบเทิร์น`)}else if(opts.by==="revol"){SFX.epic();const fm=/Zest/i.test(c.name)?"zest":/Gust/i.test(c.name)?"gust":/Tempest/i.test(c.name)?"tempest":"full";showArchFX("revol",{form:fm});showCutin("REVOLDRESS!",c.name,"revol")}else if(c.name.includes("Thegrea")&&oc.name.includes("Thegrea")){showArchFX("thegrea")}else if(c.name.includes("Masques")){SFX.epic();showCutin("MASQUES RIDE!",c.name,"masques")}else SFX.ride();
+ if(persona){draw(s,1);P.persona=true;P.personaCount=(P.personaCount||0)+1;P.personaRode=true;if(G.stats)G.stats.persona[s]++;SFX.epic();showCutin("PERSONA RIDE!",`${c.name} · จั่ว 1 / แถวหน้า +10,000`,"persona");log(`${SIDE[s]} Persona Ride (x${P.personaCount}): จั่ว 1 ใบ ยูนิตแถวหน้า +10000 จนจบเทิร์น`)}else if(opts.by==="revol"){SFX.epic();const fm=/Zest/i.test(c.name)?"zest":/Gust/i.test(c.name)?"gust":/Tempest/i.test(c.name)?"tempest":"full";showArchFX("revol",{form:fm});showCutin("REVOLDRESS!",c.name,"revol");BGM.triggerClimax(s,"RevolDress")}else if(c.name.includes("Thegrea")&&oc.name.includes("Thegrea")){showArchFX("thegrea")}else if(c.name.includes("Masques")){SFX.epic();showCutin("MASQUES RIDE!",c.name,"masques")}else SFX.ride();
  render();await pause(.5);
  if(from==="ride"&&disc)await fire("discarded",s,disc,{where:"Drop",phase:"ride"});
  await fire("rode",s,old,{where:"Soul",by:u});remind(s,old,"rodeUpon");
@@ -6812,7 +6911,8 @@ const MAT_THEMES=[
  ["dark","Dark States (ม่วงอาร์เคน)"],
  ["keter","Keter Sanctuary (ทอง-ศักดิ์สิทธิ์)"],
  ["brandt","Brandt Gate (ไซเบอร์ฟ้า)"],
- ["stoicheia","Stoicheia (มรกตธรรมชาติ)"]
+ ["stoicheia","Stoicheia (มรกตธรรมชาติ)"],
+ ["lyrical","Lyrical Monasterio (ชมพูไอดอล)"]
 ];
 let curTheme=lsGet("vg.theme","classic");
 let sfxOn=lsGet("vg.sfx",true);
@@ -7913,7 +8013,8 @@ function bindPlay(){
   if(G&&!G.over){if(!q){q=1;$("#pquit").textContent="กดอีกครั้งเพื่อเลิกเกมนี้";setTimeout(()=>{q=0;$("#pquit").textContent="เลิกเกม"},2500);return}
    q=0;$("#pquit").textContent="เลิกเกม";const g=G;g.quit=true;g.over={winner:1,why:"เลิกเกม"};const c=g.cancel,n=g.next;g.cancel=null;g.next=null;g.mode=null;g.manual=null;if(c)c();if(n)n();const rb=$("#gdResume");if(rb)rb.hidden=true;const m=$("#pmodal");m.hidden=true;m.innerHTML="";m.onclick=null;delete m.dataset.over}
   netClose();$("#psetup").hidden=false;$("#pgame").hidden=true;buildSetup()};
- $("#pclose").onclick=()=>{$("#play").hidden=true};
+ $("#pclose").onclick=()=>{BGM.stop();$("#play").hidden=true};
+ $("#pbgm").onclick=()=>BGM.toggle();BGM.ui();
  $("#pskin").onclick=openSkinMenu;
  $("#fMat0").onchange=e=>{if(e.target.files[0])saveSkin("mat0",e.target.files[0]);e.target.value=""};
  $("#fMat1").onchange=e=>{if(e.target.files[0])saveSkin("mat1",e.target.files[0]);e.target.value=""};
