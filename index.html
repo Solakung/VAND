@@ -4369,8 +4369,10 @@ async function playTurn(s){
    else{
     await fireAll(s,"battlestart");if(dead())return;
     if(bot)await botBattle(s);
-    else if(!CIRC.some(k=>{const y=G.p[s].c[k];return y&&!y.rest&&!y.locked&&(FRONT.includes(k)||canBackAtk(y))})){log("ไม่มียูนิตที่โจมตีได้");await pause(.6)}
-    else await waitNext();
+    else{
+     if(!CIRC.some(k=>{const y=G.p[s].c[k];return y&&!y.rest&&!y.locked&&(FRONT.includes(k)||canBackAtk(y))}))log("ตีครบแล้ว · กดจบเทิร์นเมื่อพร้อม");
+     await waitNext();
+    }
    }
   }while(G.rewind&&!dead());
   G.snap=null;P=G.p[s];
@@ -5183,6 +5185,7 @@ function evMatch(ev,ctx){
  if(ev.attGrade!=null&&!(G.battle&&unitGrade(G.battle.att)===ev.attGrade))return false;
  if(ev.boostedTok&&!(G.battle&&G.battle.att.no==="TK/"+ev.boostedTok))return false;
  if(ev.boosterTok&&!(G.battle&&G.battle.boost&&G.battle.boost.no==="TK/"+ev.boosterTok))return false;
+ if(ev.n!=null&&ctx.sbCount!=null&&ctx.sbCount<ev.n)return false;
  return true;
 }
 async function fire(ev,s,u,ctx){
@@ -5352,8 +5355,9 @@ async function payCost(items,ctx){
   if(c.t==="cb"){let red=(ctx.ev==="act"&&ctx.where==="VC")?(P.actCBRed||0):0;let n=Math.max(0,c.n-red);const up=P.damage.filter(x=>!x.down);if(n>0&&up.length){let pick=bot?up.slice(0,n):((await chooseCards(`เคาน์เตอร์บลาสต์ ${n}: เลือกดาเมจที่หงายอยู่ที่จะคว่ำ`,up,n,`เลือกการ์ดในดาเมจโซน ${n} ใบเพื่อคว่ำ (Counter-Blast)`))||up.slice(0,n));pick.forEach(x=>x.down=true)}}
   else if(c.t==="sb"){
    let pick;if(bot)pick=P.soul.slice(0,c.n);else pick=(await chooseCards(`โซลบลาสต์ ${c.n}: เลือกการ์ดจากโซล`,P.soul,c.n,`เลือกการ์ดจากโซล ${c.n} ใบส่งลงดรอป (Soul-Blast)`))||P.soul.slice(0,c.n);
-   ctx.sbCards=pick.slice();if(ctx.where==="VC")P.maxVgSbTurn=Math.max(P.maxVgSbTurn||0,pick.length);
+   ctx.sbCards=pick.slice();if(ctx.where==="VC"||c.n>=4)P.maxVgSbTurn=Math.max(P.maxVgSbTurn||0,pick.length);
    for(const x of pick){const wasTrig=!!cd(x).trig;moveCard(x,"drop");if(!G.over)await fire("soulToDrop",s,x,{where:"Drop"});if(wasTrig&&!G.over&&whereIs(u))await fire("sbTrigSelf",s,u,{where:ctx.where,k:ctx.k})}
+   if(!G.over&&pick.length>=2){for(const[k2,u2]of units(s)){if(G.over)break;if(whereIs(u2))await fire("sbVgBatch",s,u2,{where:k2==="VC"?"VC":"RC",k:k2,sbCount:pick.length,sbCards:ctx.sbCards})}}
   }
   else if(c.t==="discard"||c.t==="handToSoul"){
    for(let i=0;i<c.n;i++){const L=P.hand.filter(x=>x!==u);if(!L.length)break;let x=bot?botDiscard(s,L):await chooseHandCard(s,c.t==="discard"?"คอสต์: เลือกการ์ดที่จะทิ้ง":"คอสต์: เลือกการ์ดที่จะใส่เข้าโซล",false,L);if(!x||x==="back")x=L[0];(ctx.costPutCards=ctx.costPutCards||[]).push(x);moveCard(x,c.t==="discard"?"drop":"soul");if(c.t==="discard")await fire("discarded",s,x,{where:"Drop",phase:G.phase==="ride"?"ride":null,fromVg:ctx.where==="VC"?cd(u).name:null,fromBase:ctx.where==="Order"&&raceHas(u,"Base")})}
