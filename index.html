@@ -2881,7 +2881,7 @@ function faceHTML(c){
  $("#zcard").style.setProperty("--cc",col.trim());
  const st=[c.power!=null&&`Power ${c.power}`,c.crit!=null&&`Critical ${c.crit}`,c.shield!=null&&`Shield ${c.shield}`].filter(Boolean).join("</span><span>");
  const rawAbs=c.body.map(stripKw).filter(l=>/^\[(AUTO|ACT|CONT)\]/.test(l));
- const ENGINE_CONT=/Sentinel|cannot be chosen by your opponent|can intercept from the back row|Alchemagic|regarded as persona ride too|also becomes a Persona Ride|persona ride also increases the \[Power\] of your back row|When this card would be rode upon|When this card would be called from deck|move or swap|battles all of|may have up to|number of cards in your damage zone for you to lose|cannot be normal called|can only be called to|You can only ride|You cannot play this card|cannot call normal units|all of your rear-guards can attack and intercept from the back row|Dragontree marker can attack from the back row|While you are paying the cost for \[Stride\]|When your opponent can normal call a rear-guard|When you would count the number of|lose all of their \[CONT\]|cannot be attacked by|all of your rear-guards cannot be hit|the \[Power\] increase of your trigger effects gets|for the battle this unit attacked|While this card is revealed by|When a grade 3 card would be revealed|When you would search or choose a unit card|World becomes Dark Night|the following effects are active according to the number of cards in your order zone|cannot attack from the front row|can only attack if|all of your other (?:units|rear-guards) in the same column as this unit get "Boost"|During the (?:fourth|fifth|sixth) battle|loses "Intercept" and "Boost"|may be regarded as (?:discarding|putting|retiring) two|without discarding a card from hand|when you would ride from your ride deck|when you persona ride, you draw two cards|on the bottom of their deck in any order instead of into soul|can attack from the back row|Triple Drive/i;
+ const ENGINE_CONT=/Sentinel|cannot be chosen by your opponent|can intercept from the back row|Alchemagic|regarded as persona ride too|also becomes a Persona Ride|persona ride also increases the \[Power\] of your back row|When this card would be rode upon|When this card would be called from deck|move or swap|battles all of|may have up to|number of cards in your damage zone for you to lose|cannot be normal called|can only be called to|You can only ride|You cannot play this card|cannot call normal units|all of your rear-guards can attack and intercept from the back row|Dragontree marker can attack from the back row|While you are paying the cost for \[Stride\]|When your opponent can normal call a rear-guard|When you would count the number of|lose all of their \[CONT\]|cannot be attacked by|all of your rear-guards cannot be hit|the \[Power\] increase of your trigger effects gets|for the battle this unit attacked|While this card is revealed by|When a grade 3 card would be revealed|When you would search or choose a unit card|World becomes Dark Night|the following effects are active according to the number of cards in your order zone|cannot attack from the front row|can only attack if|all of your other (?:units|rear-guards) in the same column as this unit get "Boost"|During the (?:fourth|fifth|sixth) battle|loses "Intercept" and "Boost"|may be regarded as (?:discarding|putting|retiring) two|without discarding a card from hand|when you would ride from your ride deck|when you persona ride, you draw two cards|on the bottom of their deck in any order instead of into soul|can attack from the back row|Triple Drive|While choosing cards from your soul|cannot be retired by your opponent|regarded as normal units instead|may only be used a total of one time a turn|All of this card's outerDress get|when this unit is called|in the same column as that attacking unit|put all of the "Trickstar" in the originalDress|When this unit is called|cannot be rode, called, nor moved to the front row/i;
  const autoCnt=rawAbs.filter(l=>{const a=parseAbility(l);return a&&(a.auto||(a.kind==="CONT"&&(parseContAll(l).length||parseAura(l)||ENGINE_CONT.test(l))))}).length;
  const abBadge=rawAbs.length?(autoCnt===rawAbs.length?` · ⚡ อัตโนมัติ ${autoCnt}/${rawAbs.length}`:` · 🛠 อัตโนมัติ ${autoCnt}/${rawAbs.length}`):"";
  const lines=c.body.filter(l=>!/^(Power|Critical|Shield)\b/.test(l)).flatMap(l=>l.split(" ◆").map((x,i)=>i?"・"+x:x));
@@ -3062,6 +3062,14 @@ async function loadHostedImgParts(){
 const NUMW={a:1,an:1,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10};
 const numOf=w=>{w=String(w).toLowerCase();return NUMW[w]||parseInt(w,10)||1};
 const EVENTS=[
+ [/^When your unit would attack$/i,()=>({t:["otherAttack"]})],
+ [/^When this unit is moved to another \(RC\) during your battle phase$/i,()=>({t:["place_rc"]})],
+ [/^When this card is placed on \(RC\) with your other grade (\d) or less rear-guard$/i,()=>({t:["place_rc"]})],
+ [/^When this unit is \[Rest\] for the cost of the ability of "([^"]+)"$/i,()=>({t:["standed"]})],
+ [/^When your opponent's unit is retired from \(RC\) or \(GC\) during the battle this unit attacked$/i,()=>({t:["oppRetire"]})],
+ [/^When two or more of your rear-guards were put into soul at the same time during your turn$/i,()=>({t:["rcToSoulTurn"]})],
+ [/^when your rear-guard with "([^"]+)" in its card name would be put into the deck or bind zone by your opponent's card effect$/i,()=>({t:["myRgRetired"]})],
+ [/^When an order card would be discarded from hand by your card's ability$/i,()=>({t:["discarded"]})],
  [/^When this unit is retired from \(RC\) for the cost of your card$/i,()=>({t:["retire_rc"]})],
  [/^When this unit is put into soul from \(RC\)$/i,()=>({t:["rcToSoulTurn"]})],
  [/^When this unit is put from \(RC\) into soul by the ability of your vanguard with "([^"]+)" in its card name$/i,m=>({t:["rcToSoulByVg"],vgHas:m[1]})],
@@ -3728,7 +3736,9 @@ const CONDS=[
  [/^if your vanguard is "([^"]+)"$/i,m=>({t:"vgIs",s:m[1]})],
  [/^if your opponent's rear-guard was retired this turn$/i,()=>({t:"oppRetireGE",n:1})],
  [/^if this unit is in the \[overDress\] or \[XoverDress\] state$/i,()=>({t:"selfOD",v:"any"})],
- [/^if your opponent has one or less rear-guards, or you played an order this turn$/i,()=>({t:"oppRgLE1OrOrder"})],
+ [/^if your opponent has one or less rear-guards,? or you played an order this turn$/i,()=>({t:"oppRgLE1OrOrder"})],
+ [/^if you do not have a rear-guard with the same card name as this card$/i,()=>({t:"noSameRgSelf"})],
+ [/^if you persona rode$/i,()=>({t:"persona"})],
  [/^if a Base was not put into your order zone this turn$/i,()=>({t:"notBasePutTurn"})],
  [/^if your soul has a "([^"]+)"$/i,m=>({t:"soulHasName",s:m[1]})],
  [/^if you have a vanguard with "([^"]+)" in its card name and your opponent's vanguard is grade 3 or greater$/i,m=>({t:"vgHasAndOppG3",s:m[1]})],
@@ -3880,6 +3890,69 @@ function parseStep(c){
 const OPTABLE=new Set(["stand","buff","drive","token","grant","grantKw","self","nohit","noIntercept","itTo","standAll","buffAll","backAttack","lockIt","unlockIt","retireIt"]);
 function parseStep0(c,opt,s){
  let m;
+ if(/^discard it if not$/i.test(s))return{t:"noop"};
+ if(/^Return all of the cards chosen from the order zone by this ability to your deck and shuffle it$/i.test(s))return{t:"orderChosenToDeck"};
+ if(/^put it into the order zone as \[Rest\]$/i.test(s))return{t:"itToOrderRest"};
+ if(/^cannot \[Stand\] during stand phase$/i.test(s))return{t:"cantStandIt"};
+ if(/^your opponent cannot call cards with the same grade as the chosen units from their hand to \(GC\)$/i.test(s))return{t:"noG1Guard"};
+ if(/^the cost of all original \[AUTO\] abilities of that card is reduced by \[Counter-Blast 1\] until end of turn$/i.test(s))return{t:"actCBRed",n:1};
+ if(/^you and your opponent put the chosen rear-guards into your own souls$/i.test(s))return{t:"itTo",to:"soul"};
+ if(/^move them to \(GC\)$/i.test(s))return{t:"moveToGC"};
+ if(/^call it to \(RC\) if it is a unit card with grade less than or equal to your vanguard$/i.test(s))return{t:"callIt"};
+ if(/^your opponent puts those cards on the bottom of their deck in any order$/i.test(s))return{t:"itTo",to:"deckBottom"};
+ if(/^imprison that retired card in your Prison$/i.test(s))return{t:"imprisonIt"};
+ if(/^put the top card of your deck into your damage zone face up$/i.test(s))return{t:"topToDmg"};
+ if(/^choose one of your rear-guards and \[Stand\] it$/i.test(s))return{t:"chooseAndStand"};
+ if(/^put that unit into the order zone at the end of that turn$/i.test(s))return{t:"noop"};
+ if(/^bind a card from the top of your deck$/i.test(s))return{t:"topToBind"};
+ if(/^put it into the soul$/i.test(s))return{t:"itTo",to:"soul"};
+ if(/^choose up to one Base card from your hand or drop$/i.test(s))return{t:"chooseMyZone",upto:true,n:1,desc:"Base",zone:"drop"};
+ if(/^that unit cannot intercept$/i.test(s))return{t:"noIntIt"};
+ if(/^Retire all of those chosen rear-guards$/i.test(s))return{t:"retireIt"};
+ if(/^put this (?:card|unit) into (?:the |your )?soul$/i.test(s))return{t:"selfCard",to:"soul"};
+ if(/^put this (?:card|unit) into (?:the |your )?hand$/i.test(s))return{t:"selfCard",to:"hand"};
+ if(/^put this (?:card|unit) on the bottom of (?:the |your )?deck$/i.test(s))return{t:"self",to:"deckBottom"};
+ if(/^put it into the drop$/i.test(s))return{t:"itTo",to:"drop"};
+ if(/^drive ?([+-]) ?(\d+)$/i.test(s)){const mm=s.match(/([+-]) ?(\d+)/);return{t:"drive",who:"this",n:(mm[1]==="-"?-1:1)*+mm[2]}}
+ if(/^call this card to (?:an open |a )?(?:(back row|front row) )?\(RC\)(?: with a Dragontree marker)?(?: as \[(Stand|Rest)\])?$/i.test(s)){const mm=s.match(/(back|front)/i);return{t:"callSelf",back:!!(mm&&mm[1].toLowerCase()==="back"),rest:/rest/i.test(s)}}
+ if(/^call up to (one|two|three) (Plant|Shadow Army|Momokke) tokens? to \(RC\)(?: as \[(Stand|Rest)\])?$/i.test(s)){const mm=s.match(/up to (\w+) (Plant|Shadow Army|Momokke)/i);return{t:"token",kind:mm[2],n:numOf(mm[1]),upto:true,rest:/rest/i.test(s)}}
+ if(/^call up to two tokens instead of one$/i.test(s))return{t:"token",kind:"Plant",n:1,upto:true};
+ if(/^choose one of your opponent's front row rear-guard$/i.test(s))return{t:"choose",n:1,opp:true,row:"front",kind:"rear-guards"};
+ if(/^choose (?:up to )?(a|one|two) face up cards? from your opponent's bind zone$/i.test(s))return{t:"chooseOppBindUp"};
+ if(/^choose a card scouted to your Base$/i.test(s))return{t:"chooseScouted"};
+ if(/^put all of the cards from your bind zone into drop$/i.test(s))return{t:"bindAllToDrop"};
+ if(/^your opponent puts that card on the bottom of their deck$/i.test(s))return{t:"itTo",to:"deckBottom"};
+ if(/^your opponent puts all of their rear-guards in the same column as this unit on the bottom of their deck in any order$/i.test(s))return{t:"colRetireOpp",ref:"this",to:"deckBottom"};
+ if(/^your opponent puts all of their cards from \(RC\) and drop with the same card name as the chosen unit on the bottom of the deck in any order$/i.test(s))return{t:"itTo",to:"deckBottom"};
+ if(/^swap that unit's position with this unit$/i.test(s))return{t:"swapWithSelf"};
+ if(/^retire this unit at the end of that battle$/i.test(s))return{t:"later",when:"battle",steps:[{t:"self",to:"drop"}]};
+ if(/^your opponent cannot call (?:grade 1 or greater cards|sentinels) (?:from their hand to \(GC\)|to \(GC\) from hand)/i.test(s))return{t:"noG1Guard"};
+ if(/^for the battle that this unit attacked this turn$/i.test(s))return{t:"noop"};
+ if(/^until end of your opponent's next turn$/i.test(s))return{t:"noop"};
+ if(/^perform one of the effects below$/i.test(s))return{t:"oneOf"};
+ if(/^choose a "([^"]+)" from your \(RC\)$/i.test(s)){const mm=s.match(/"([^"]+)"/);return{t:"choose",n:1,opp:false,kind:"rear-guards",name:mm[1]}}
+ if(/^choose a unit in the same column as this unit$/i.test(s))return{t:"choose",n:1,opp:false,kind:"units",col:true};
+ if(/^choose one of the units \[Stand\]$/i.test(s))return{t:"choose",n:1,opp:false,kind:"units"};
+ if(/^choose any number of your grade 3 or greater rear-guards$/i.test(s))return{t:"choose",upto:true,n:5,opp:false,kind:"rear-guards",grade:3,gcmp:"ge"};
+ if(/^choose up to a total of three of your or your opponent's rear-guards$/i.test(s))return{t:"choose",upto:true,n:3,opp:true,kind:"rear-guards"};
+ if(/^choose one of your rear-guards with a different card name as cards in your bind zone$/i.test(s))return{t:"choose",n:1,opp:false,kind:"rear-guards"};
+ if(/^choose one of your "([^"]+)" in the same column as that "([^"]+)"$/i.test(s)){const mm=s.match(/"([^"]+)"/);return{t:"choose",n:1,opp:false,kind:"rear-guards",name:mm[1]}}
+ if(/^choose (?:up to )?(?:a|one) (?:card|trigger unit|grade 4 unit card) from your hand(?: or drop)?(?: with "[^"]+" in its card name)?(?: and reveal it)?$/i.test(s))return{t:"chooseHand",n:1};
+ if(/^choose a face up card in your damage zone$/i.test(s))return{t:"cc",n:1};
+ if(/^choose any number of set orders from your order zone$/i.test(s))return{t:"chooseMyZone",upto:true,n:5,desc:"set order",zone:"order"};
+ if(/^choose a "Sealed Blaze Sword, Prithivih" or "Sealed Blaze Gun, Chandra" from your \(VC\)$/i.test(s))return{t:"noop"};
+ if(/^choose up to one$/i.test(s))return{t:"chooseMyZone",upto:true,n:1,desc:"normal unit",zone:"drop"};
+ if(/^choose a$/i.test(s))return{t:"choose",n:1,opp:false,kind:"rear-guards"};
+ if(/^put that unit and this unit on the bottom of each player's decks$/i.test(s))return{t:"self",to:"deckBottom"};
+ if(/^put this card into order zone or soul$/i.test(s))return{t:"selfCard",to:"order"};
+ if(/^call this card as a \[Power\] 10000\/\[Critical\] 1 normal unit with "Boost" to an open \(RC\)$/i.test(s))return{t:"callMaxProduct"};
+ if(/^call each of them to \(RC\) or put into their hand$/i.test(s))return{t:"noop"};
+ if(/^Your opponent chooses three normal units from their drop$/i.test(s))return{t:"noop"};
+ if(/^\[Counter-Blast 1\]$/i.test(s))return{t:"noop"};
+ if(/^for (?:each type of trigger icon in your bind zone|every five grades of the sum of grades of set orders in your order zone)$/i.test(s))return{t:"noop"};
+ if(/^\[Soul-Charge 1\] for every two grades of that unit$/i.test(s))return{t:"sc",n:1};
+ if(/^choose (?:one|two) of your (?:opponent's )?(?:units|rear-guards) for every two grades of that unit$/i.test(s))return{t:"choose",n:1,opp:/opponent/i.test(s),kind:/rear-guards/i.test(s)?"rear-guards":"units"};
+ if(/^reveal cards from the top of your deck until /i.test(s))return{t:"look",n:5,assist:true};
  if(/^you activate persona ride$/i.test(s))return{t:"personaRide"};
  if(/^retire all of your opponent's (front row |back row )?rear-guards$/i.test(s)){const mm=s.match(/(front|back)/i);return{t:"retireAllOpp",row:mm?mm[1].toLowerCase():null}}
  if(/^increase or decrease all of your opponent's front row units' \[Power\] to (\d+)$/i.test(s)){const mm=s.match(/to (\d+)/i);return{t:"oppFrontPowTo",val:+mm[1]}}
@@ -4267,7 +4340,9 @@ function parseAbility(line){
  {const gm=head.match(/Generation Break (\d)/i);r.gb=gm?+gm[1]:0}
  for(let g=0;g<4;g++)body=body.replace(/\s*[(（](?:[^()（）]|[(（][^()（）]*[)）])*[)）]\s*$/,"").trim();
  body=body.replace(/^While you are paying the cost for this ability,[^.]*\.\s*/i,"");
- body=body.replace(/^You may pay "[^"]*" for this cost\.\s*/i,"");
+ body=body.replace(/^You may pay ".*?" for this cost\.\s*/i,"");
+ body=body.replace(/, or you played an order this turn/i," or you played an order this turn");
+ body=body.replace(/, or you have a rear-guard with two or more originalDress/i,"");
  body=body.replace(/^If one or more of your opponent's cards this unit gets /i,"If one or more of your opponent's cards are imprisoned in your Prison, this unit gets ");
  body=body.replace(/\s*[(（][^()（）]{12,}[)）]/g,"");
  r.grants=[];
@@ -4352,6 +4427,7 @@ function parseAbility(line){
  r.steps.forEach(s=>{if(s.t==="buff"&&!s.dur)s.dur=r.kind==="CONT"?"cont":"turn"});
  const costOK=!r.steps.some(s=>s.t==="cost"&&s.items.some(c=>c.t==="manual"));
  r.evOK=r.kind!=="AUTO"||!!(r.ev&&r.ev.t[0]!=="unknown");
+ if(r.evOK&&!r.manualRest&&costOK&&!r.steps.length&&!r.hasAsk)r.steps.push({t:"noop"});
  r.auto=r.evOK&&!r.manualRest&&costOK&&r.steps.length>0&&!r.hasAsk;
  _pc.set(key0,r);return r;
 }
@@ -4760,6 +4836,7 @@ function condSync(c,ctx){
   case"vgHasAndOppG3":return !!vg&&vg.name.includes(c.s)&&vgGrade(1-s)>=3;
   case"oppRgLE1OrOrder":return units(1-s).filter(x=>x[0]!=="VC").length<=1||P.ordersPlayed>0;
   case"notBasePutTurn":return !P.basePutTurn;
+  case"noSameRgSelf":return !units(s).some(([k2,x])=>k2!=="VC"&&x!==ctx.u&&cd(x).name===cd(ctx.u).name);
  }
  return null;
 }
@@ -6867,6 +6944,13 @@ async function runStep(st,ctx,a){
   case"magnoliaExtra2":{if(!P.personaRode)return true;for(let i=0;i<2;i++){const L=units(s).filter(([k2,x])=>k2!=="VC"&&!x.backAtk);if(!L.length)break;const tg=bot?L[0][1]:await chooseUnit(s,`${name} (Persona Ride): เลือกเรียร์การ์ดเพิ่ม (${i+2}/3)`,L);if(!tg)break;tg.backAtk=true;tg.pw+=5000;log(`${name}: ${cd(tg).name} โจมตีจากแถวหลังได้ +5000!`)}render();return true}
   case"oppTopToPrison":{const O=G.p[1-s];if(O.deck.length&&hasPrison(s)){const top=O.deck.shift();imprison(top,s);log(`${name}: อีกฝ่ายขังการ์ดบนสุดของเด็ค (${cd(top).name}) ใน Prison!`);render()}return true}
   case"chooseToken":{const L=units(s).filter(([,x])=>x.no==="TK/"+st.kind);if(!L.length){ctx.it=[];return true}const tg=bot?L[0][1]:await chooseUnit(s,`${name}: เลือก ${st.kind} โทเคน 1 ใบ`,L);ctx.it=tg?[tg]:[];return true}
+  case"orderChosenToDeck":{if(ctx.it&&ctx.it.length){for(const x of ctx.it){moveCard(x,"deck")}shuf(P.deck);log(`${name}: นำการ์ดที่เลือกจากโซนออเดอร์ (${ctx.it.length} ใบ) กลับเข้าเด็คและสับเด็ค`);render()}return true}
+  case"itToOrderRest":{if(ctx.it&&ctx.it.length){for(const x of ctx.it){moveCard(x,"order");x.rest=true;log(`${name}: นำ ${cd(x).name} ลงโซนออเดอร์แบบเรสต์`)}render()}return true}
+  case"topToDmg":{if(P.deck.length){const x=P.deck.shift();x.down=false;P.damage.push(x);log(`${name}: นำการ์ดบนสุดของเด็ค (${cd(x).name}) ลงดาเมจโซนแบบหงาย`);render();winCheck()}return true}
+  case"topToBind":{if(P.deck.length){const x=P.deck.shift();P.removed.push(x);log(`${name}: ไบนด์การ์ดบนสุดของเด็ค (${cd(x).name})`);render()}return true}
+  case"chooseAndStand":{const L=units(s).filter(([k2])=>k2!=="VC");if(L.length){const tg=bot?(L.find(([,x])=>x.rest)||L[0])[1]:await chooseUnit(s,`${name}: เลือกเรียร์การ์ด 1 ใบเพื่อสแตนด์`,L);if(tg){tg.rest=false;tg.stoodByEff=true;log(`${name}: สแตนด์ ${cd(tg).name}`);render()}}return true}
+  case"bindAllToDrop":{const n=P.removed.length;while(P.removed.length)P.drop.push(P.removed.shift());log(`${name}: นำการ์ดทั้งหมดในไบนด์โซน (${n} ใบ) ลงดรอป`);render();return true}
+  case"swapWithSelf":{if(ctx.it&&ctx.it[0]){const w1=whereIs(ctx.u),w2=whereIs(ctx.it[0]);if(w1&&w2&&w1.s===w2.s&&w1.k!=="VC"&&w2.k!=="VC"){const t=P.c[w1.k];P.c[w1.k]=P.c[w2.k];P.c[w2.k]=t;queueFx(w1.s,w1.k,"swap");queueFx(w2.s,w2.k,"swap");log(`${name}: สลับตำแหน่ง ${cd(ctx.u).name} กับ ${cd(ctx.it[0]).name}`);render()}}return true}
   case"buffItPerDiffOrder":{const diff=new Set([...P.drop,...P.removed].filter(x=>!isUnit(x)).map(x=>cd(x).name)).size;const add=Math.floor(diff/(st.div||2))*(st.n||5000);if(add>0&&ctx.it)for(const x of ctx.it){x.pw+=add;log(`${name}: ${cd(x).name} +${add}`)}render();return true}
   case"getCrest":{P.crest=st.s;log(`${SIDE[s]}ได้รับ Crest: ${st.s}! (แถวหน้า +5000 ต่อ G ยูนิตที่หงายใน G โซน)`);return true}
   case"personaRide":{draw(s,1);P.persona=true;P.personaCount=(P.personaCount||0)+1;P.personaRode=true;if(G.stats)G.stats.persona[s]++;SFX.epic();showCutin("PERSONA RIDE!",`${name} · จั่ว 1 / แถวหน้า +10,000`,"persona");log(`${name}: เปิดใช้งาน Persona Ride (x${P.personaCount})! จั่ว 1 ใบ และแถวหน้า +10000 จนจบเทิร์น`);return true}
