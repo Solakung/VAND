@@ -2243,6 +2243,42 @@ button,.ch,.cell,.tile,.mc,.zb{touch-action:manipulation;-webkit-tap-highlight-c
  .grid.imgmode{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:7px}
 }
 
+
+/* =====================  v31: VOICE STUDIO (RECORDING + JA-JP TTS)  ===================== */
+#voiceModal{
+ position:fixed;inset:0;z-index:32;background:rgba(4,8,16,.8);backdrop-filter:blur(4px);
+ display:flex;align-items:center;justify-content:center;padding:14px;
+}
+#voiceModal .mbox{max-width:700px;width:100%;max-height:88dvh;gap:10px}
+.vs-top{
+ display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+ padding:10px 12px;border-radius:10px;background:rgba(8,14,26,.78);
+ border:1px solid rgba(148,163,184,.22);font-size:12.5px;
+}
+.vs-top label{display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-weight:600}
+.vs-seg{display:inline-flex;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.vs-seg button{border:0;border-radius:0;padding:4px 10px;font-size:12px;background:var(--panel2)}
+.vs-seg button.on{background:var(--acc);color:#041e1b;font-weight:800}
+.vs-list{display:flex;flex-direction:column;gap:6px;overflow:auto;max-height:48dvh;padding-right:2px}
+.vs-row{
+ display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;
+ padding:8px 10px;border-radius:9px;background:rgba(15,23,42,.84);
+ border:1px solid rgba(148,163,184,.2);
+}
+.vs-row.custom{border-color:rgba(79,209,197,.55);background:rgba(15,38,44,.75)}
+.vs-row.rec{border-color:#ef4444;box-shadow:0 0 16px rgba(239,68,68,.45);background:rgba(69,10,20,.65)}
+.vs-info{min-width:0;display:flex;flex-direction:column;gap:2px}
+.vs-info b{font-size:13px;color:#f8fafc;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.vs-info small{font-size:11px;color:#94a3b8}
+.vs-tag{font-size:10px;font-weight:800;padding:1px 6px;border-radius:99px;background:rgba(148,163,184,.16);color:#cbd5e1}
+.vs-row.custom .vs-tag{background:rgba(79,209,197,.2);color:var(--acc)}
+.vs-btns{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.vs-btns button{padding:4px 8px;font-size:11.5px;border-radius:6px}
+.vs-btns button.rec-on{background:#ef4444;border-color:#fca5a5;color:#fff;font-weight:800;animation:bglPulse .9s infinite}
+@media(max-width:600px){
+ .vs-row{grid-template-columns:1fr;gap:6px}
+ .vs-btns{justify-content:flex-start}
+}
 </style>
 </head>
 <body>
@@ -2304,6 +2340,7 @@ button,.ch,.cell,.tile,.mc,.zb{touch-action:manipulation;-webkit-tap-highlight-c
   <button id="homeBtn" title="กลับหน้าแรก">🏠</button><h1>D-Series Deck Lab</h1><span id="stat" class="meta" style="color:var(--mute);font-size:12px"></span>
   <span class="sp"></span>
   <button id="testHandBtn" title="สุ่มจั่วมือ 5 ใบ + ลองมัลลิแกนในหน้าจัดเด็ค">🃏 เทสต์มือ</button>
+  <button id="voiceBtn" title="ห้องอัดเสียงพากย์ & เสียงญี่ปุ่น (ชาย/หญิง)">🎙️ เสียงพากย์</button>
   <button id="playBtn" class="big">เล่น ▶</button>
   <button id="imgBtn">รูปการ์ด ▾</button>
   <button id="reload">เปลี่ยนไฟล์การ์ด</button>
@@ -2365,6 +2402,7 @@ button,.ch,.cell,.tile,.mc,.zb{touch-action:manipulation;-webkit-tap-highlight-c
   <button id="pskin" title="อัปโหลดรูป Playmat / หลังการ์ดเอง">🖼️</button>
   <button id="ptheme" title="เปลี่ยนธีมสีสนาม">🎨</button>
   <button id="pbgm" title="เปิด/ปิดเพลงประกอบสนาม (BGM / เพลงธีมประจำเด็ค)">🎵 BGM</button>
+  <button id="pvoice" title="ห้องอัดเสียงพากย์ & เสียงญี่ปุ่น (ชาย/หญิง)">🎙️</button>
   <button id="psfx" title="เปิด/ปิดเสียงเอฟเฟกต์">🔊</button>
   <button id="pundo" title="ย้อนกลับไปต้นเฟสเมนของเทิร์นนี้" hidden>↩ ย้อนต้นเทิร์น</button>
   <button id="prestart" title="สับเด็คเริ่มใหม่ทันที">สับใหม่</button>
@@ -2427,6 +2465,9 @@ button,.ch,.cell,.tile,.mc,.zb{touch-action:manipulation;-webkit-tap-highlight-c
  <div class="bgl-bar"><div class="bgl-fill" id="bglFill"></div></div>
 </div>
 <div id="htModal" hidden></div>
+<div id="voiceModal" hidden></div>
+<input type="file" id="fVoiceOne" accept="audio/*" hidden>
+<input type="file" id="fVoicePack" accept=".vgvoice,.json" hidden>
 <div id="zoom" hidden>
  <div class="stage"><div class="card" id="zcard"><div class="in" id="zin"></div><div class="holo"></div></div></div>
  <div id="zbar"><button id="ztog">รูป / ข้อความ</button><button id="zadd">+ ใส่เด็ค</button><button id="zgyro">เอียงด้วยมือถือ</button><button id="zclose">ปิด</button></div>
@@ -2840,7 +2881,7 @@ function faceHTML(c){
  $("#zcard").style.setProperty("--cc",col.trim());
  const st=[c.power!=null&&`Power ${c.power}`,c.crit!=null&&`Critical ${c.crit}`,c.shield!=null&&`Shield ${c.shield}`].filter(Boolean).join("</span><span>");
  const rawAbs=c.body.map(stripKw).filter(l=>/^\[(AUTO|ACT|CONT)\]/.test(l));
- const ENGINE_CONT=/Sentinel|cannot be chosen by your opponent|can intercept from the back row|Alchemagic|regarded as persona ride too|When this card would be rode upon|When this card would be called from deck|move or swap|battles all of|may have up to|number of cards in your damage zone for you to lose/i;
+ const ENGINE_CONT=/Sentinel|cannot be chosen by your opponent|can intercept from the back row|Alchemagic|regarded as persona ride too|also becomes a Persona Ride|persona ride also increases the \[Power\] of your back row|When this card would be rode upon|When this card would be called from deck|move or swap|battles all of|may have up to|number of cards in your damage zone for you to lose|cannot be normal called|can only be called to|You can only ride|You cannot play this card|cannot call normal units|all of your rear-guards can attack and intercept from the back row|Dragontree marker can attack from the back row|While you are paying the cost for \[Stride\]|When your opponent can normal call a rear-guard|When you would count the number of|lose all of their \[CONT\]|cannot be attacked by|all of your rear-guards cannot be hit|the \[Power\] increase of your trigger effects gets|for the battle this unit attacked|While this card is revealed by|When a grade 3 card would be revealed|When you would search or choose a unit card|World becomes Dark Night|the following effects are active according to the number of cards in your order zone|cannot attack from the front row|can only attack if|all of your other (?:units|rear-guards) in the same column as this unit get "Boost"|During the (?:fourth|fifth|sixth) battle|loses "Intercept" and "Boost"|may be regarded as (?:discarding|putting|retiring) two|without discarding a card from hand|when you would ride from your ride deck|when you persona ride, you draw two cards|on the bottom of their deck in any order instead of into soul|can attack from the back row|Triple Drive/i;
  const autoCnt=rawAbs.filter(l=>{const a=parseAbility(l);return a&&(a.auto||(a.kind==="CONT"&&(parseContAll(l).length||parseAura(l)||ENGINE_CONT.test(l))))}).length;
  const abBadge=rawAbs.length?(autoCnt===rawAbs.length?` · ⚡ อัตโนมัติ ${autoCnt}/${rawAbs.length}`:` · 🛠 อัตโนมัติ ${autoCnt}/${rawAbs.length}`):"";
  const lines=c.body.filter(l=>!/^(Power|Critical|Shield)\b/.test(l)).flatMap(l=>l.split(" ◆").map((x,i)=>i?"・"+x:x));
@@ -3681,6 +3722,16 @@ const CONDS=[
  [/^if this unit is in the (front|back) row$/i,m=>({t:"row",v:m[1].toLowerCase()})],
  [/^if your drop has (\w+) or more order cards$/i,m=>({t:"dropOrdersGE",n:numOf(m[1])})],
  [/^if your vanguard's grade is less than your opponent's vanguard's grade$/i,()=>({t:"vgLower"})],
+ [/^if its \[Critical\] is increased by a non-trigger effect ability or its original \[Critical\] is 2 or greater$/i,()=>({t:"atkCritEff"})],
+ [/^if your opponent's attacking unit's \[Critical\] is 2 or greater$/i,()=>({t:"atkCrit",n:2})],
+ [/^if you do not have "([^"]+)" on your \(RC\)$/i,m=>({t:"noRgName",s:m[1]})],
+ [/^if your vanguard is "([^"]+)"$/i,m=>({t:"vgIs",s:m[1]})],
+ [/^if your opponent's rear-guard was retired this turn$/i,()=>({t:"oppRetireGE",n:1})],
+ [/^if this unit is in the \[overDress\] or \[XoverDress\] state$/i,()=>({t:"selfOD",v:"any"})],
+ [/^if your opponent has one or less rear-guards, or you played an order this turn$/i,()=>({t:"oppRgLE1OrOrder"})],
+ [/^if a Base was not put into your order zone this turn$/i,()=>({t:"notBasePutTurn"})],
+ [/^if your soul has a "([^"]+)"$/i,m=>({t:"soulHasName",s:m[1]})],
+ [/^if you have a vanguard with "([^"]+)" in its card name and your opponent's vanguard is grade 3 or greater$/i,m=>({t:"vgHasAndOppG3",s:m[1]})],
  [/^if your opponent's vanguard's grade is higher than your vanguard's$/i,()=>({t:"vgLower"})],
 ];
 const COSTS=[
@@ -3801,6 +3852,8 @@ const COSTS=[
  [/^put (two|three) cards from hand into soul$/i,m=>({t:"handToSoul",n:numOf(m[1])})],
  [/^reveal three cards with different grades from hand$/i,()=>({t:"revealDiffGrades",n:3})],
  [/^scout this unit and a card with "B-Hero" in its card name from hand to Base$/i,()=>({t:"scoutHand"})],
+ [/^bind a "Blue Deathster.*" from \(VC\)$/i,()=>({t:"noopCost"})],
+ [/^\[Soul-Blast (\d+)\]/i,m=>({t:"sb",n:+m[1]})],
  [/^bind a "([^"]+)" from \(VC\)$/i,()=>({t:"noopCost"})],
 ];
 const STAT=/\[(Power|Shield|Critical)\] ?([+-]) ?(\d+)/gi;
@@ -3827,6 +3880,112 @@ function parseStep(c){
 const OPTABLE=new Set(["stand","buff","drive","token","grant","grantKw","self","nohit","noIntercept","itTo","standAll","buffAll","backAttack","lockIt","unlockIt","retireIt"]);
 function parseStep0(c,opt,s){
  let m;
+ if(/^you activate persona ride$/i.test(s))return{t:"personaRide"};
+ if(/^retire all of your opponent's (front row |back row )?rear-guards$/i.test(s)){const mm=s.match(/(front|back)/i);return{t:"retireAllOpp",row:mm?mm[1].toLowerCase():null}}
+ if(/^increase or decrease all of your opponent's front row units' \[Power\] to (\d+)$/i.test(s)){const mm=s.match(/to (\d+)/i);return{t:"oppFrontPowTo",val:+mm[1]}}
+ if(/^put the rest into (?:your )?soul$/i.test(s))return{t:"restArmsToSoul"};
+ if(/^choose (?:one|two|three) (?:of the )?boosted rear-guards?$/i.test(s))return{t:"chooseBoosted"};
+ if(/^choose three rear-guards instead of one$/i.test(s))return{t:"magnoliaExtra2"};
+ if(/^call them to \(RC\) in different rows$/i.test(s))return{t:"callIt"};
+ if(/^it gets all of the original \[ACT\] abilities of the card bound for this cost$/i.test(s))return{t:"noop"};
+ if(/^your opponent imprisons the top card of their deck in your Prison face up$/i.test(s))return{t:"oppTopToPrison"};
+ if(/^puts it into their hand$/i.test(s))return{t:"itTo",to:"hand"};
+ if(/^call a (Shadow Army|Plant|Momokke) token to a \(RC\) in the same column as this unit$/i.test(s)){const mm=s.match(/call a (Shadow Army|Plant|Momokke)/i);return{t:"token",kind:mm[1],n:1}}
+ if(/^choose (?:up to )?(one|two) cards? instead of one$/i.test(s))return{t:"noop"};
+ if(/^for every two cards in your damage zone$/i.test(s))return{t:"noop"};
+ if(/^choose one of your rear-guards in the same column as this unit$/i.test(s))return{t:"choose",n:1,opp:false,kind:"rear-guards",col:true};
+ if(/^it gets \+(\d+) instead of \+(\d+)$/i.test(s)){const mm=s.match(/\+(\d+) instead of \+(\d+)/i);return{t:"buff",who:"this",stats:[["power",+mm[1]-+mm[2]]],per:null,dur:"cont"}}
+ if(/^choose one of your Plant tokens$/i.test(s))return{t:"chooseToken",kind:"Plant"};
+ if(/^that unit gets \[Power\] \+(\d+) until end of turn for every two order cards with different card names in total in your drop and bind zone$/i.test(s)){const mm=s.match(/\+(\d+)/);return{t:"buffItPerDiffOrder",n:+mm[1],div:2}}
+ if(/^choose up to one from your drop$/i.test(s))return{t:"chooseMyZone",upto:true,n:1,desc:"normal unit",zone:"drop"};
+ if(/^put that chosen card into (?:your )?soul$/i.test(s))return{t:"itTo",to:"soul"};
+ if(/^choose one of your opponent's rear-guards$/i.test(s))return{t:"choose",n:1,opp:true,kind:"rear-guards"};
+ if(/^increase that number by [①1]$/i.test(s))return{t:"noop"};
+ if(/^cannot gain them$/i.test(s))return{t:"noop"};
+ if(/^boost this unit(?: with them)?$/i.test(s))return{t:"boostAllBack"};
+ if(/^arm one to your vanguard from among them$/i.test(s))return{t:"armIt"};
+ if(/^ride this card as \[(Stand|Rest)\]$/i.test(s))return{t:"rideSelf",rest:/rest/i.test(s)};
+ if(/^remove all markers from your opponent's \(RC\)$/i.test(s))return{t:"clearOppMarkers"};
+ if(/^put a Gripho Eschatologui token into your order zone$/i.test(s))return{t:"griphoOrderToken"};
+ if(/^choose (?:a \[Over\] trigger|a trigger unit) from your ride deck$/i.test(s))return{t:"chooseRideTrig"};
+ if(/^for every two Meteorite cards put into drop for this cost$/i.test(s))return{t:"drawPerVar",div:2};
+ if(/^for every two World cards in your Order Zone$/i.test(s))return{t:"orfistRegisTokens"};
+ if(/^perform all of the following according to the Arms on your \(VC\)$/i.test(s))return{t:"tiers",metric:"arms"};
+ if(/^perform all of the following according to the card names in your soul$/i.test(s))return{t:"fullBlastTiers"};
+ if(/^you cannot ride by card effects until end of turn$/i.test(s))return{t:"cantRideTurn"};
+ if(/^you cannot arm your vanguard until end of turn$/i.test(s))return{t:"noop"};
+ if(/^While you are paying the cost for this ability$/i.test(s))return{t:"noop"};
+ if(/^search your deck$/i.test(s))return{t:"search",assist:true};
+ if(/^reduce the next \[Counter-Blast\] cost you pay for that card's abilities by [①1]$/i.test(s))return{t:"actCBRed",n:1};
+ if(/^call this card to \(RC\) as \[Rest\]$/i.test(s))return{t:"callSelf",rest:true};
+ if(/^call it to \(GC\)$/i.test(s))return{t:"moveToGC"};
+ if(/^move this unit to \(GC\)$/i.test(s))return{t:"moveSelfToGC"};
+ if(/^move it to an open back row \(RC\)$/i.test(s))return{t:"noop"};
+ if(/^put that unit into your soul$/i.test(s))return{t:"itTo",to:"soul"};
+ if(/^binds? them$/i.test(s))return{t:"itTo",to:"removed"};
+ if(/^put that retired card into your hand$/i.test(s))return{t:"itTo",to:"hand"};
+ if(/^choose one of your opponent's \(RC\)$/i.test(s))return{t:"choose",upto:false,n:1,opp:true,kind:"rear-guards"};
+ if(/^choose (six|five|four) of your units$/i.test(s))return{t:"chooseAll",opp:false,kind:"units"};
+ if(/^choose one of your grade (\d) or greater units being attacked$/i.test(s))return{t:"choose",n:1,opp:false,kind:"units",attacked:true};
+ if(/^choose (?:a|one of your) "([^"]+)" on your \((RC|VC)\)$/i.test(s)){const mm=s.match(/"([^"]+)" on your \((RC|VC)\)/i);return{t:"choose",n:1,opp:false,kind:mm[2]==="VC"?"vanguards":"rear-guards",name:mm[1]}}
+ if(/^your opponent puts all of their front row rear-guards on the bottom of their deck in any order$/i.test(s))return{t:"oppFrontBottom"};
+ if(/^\[Soul-Charge (\d+)\] for each of your opponent's cards imprisoned in your Prison$/i.test(s)){const mm=s.match(/(\d+)/);return{t:"scPerPrison",n:+mm[1]}}
+ if(/^\[Soul-Charge (\d+)\] for every (\w+) cards in your damage zone$/i.test(s)){const mm=s.match(/Soul-Charge (\d+)\] for every (\w+)/i);return{t:"scPerDmg",n:+mm[1],div:numOf(mm[2])}}
+ if(/^your opponent cannot call with your Prison's ability until end of your opponent's next turn$/i.test(s))return{t:"noop"};
+ if(/^your opponent chooses (a|one|two) (?:grade \d or greater |of their )?cards? imprisoned in your Prison$/i.test(s)){const mm=s.match(/chooses (\w+)/i);return{t:"oppReleasePrison",n:numOf(mm[1])}}
+ if(/^increase or decrease its \[Critical\] and drive to 1 until end of turn$/i.test(s))return{t:"driveTo",n:1};
+ if(/^look at the same number of cards from the top of your deck as the number of different Research cards in your order zone$/i.test(s))return{t:"lookResearch"};
+ if(/^§GUARDMIN(\d)§$/i.test(s)){const mm=s.match(/(\d)/);return{t:"guardMin",n:+mm[1]}}
+ if(/^you draw (a|one|two|three|\d+) cards?$/i.test(s)){const mm=s.match(/draw (\w+)/i);return{t:"draw",n:numOf(mm[1]),opt}}
+ if(/^your opponent draws (a|one|two|three) cards?$/i.test(s)){const mm=s.match(/draws (\w+)/i);return{t:"drawOpp",n:numOf(mm[1])}}
+ if(/^\[Stand\] that (?:unit|called unit)$/i.test(s))return{t:"stand",who:"it"};
+ if(/^\[Rest\] that unit$/i.test(s))return{t:"rest",who:"it"};
+ if(/^remove (it|them)$/i.test(s))return{t:"itTo",to:"exile"};
+ if(/^choose a unit boosted by this unit$/i.test(s))return{t:"chooseBoosted"};
+ if(/^choose one of your vanguards or hearts$/i.test(s))return{t:"choose",upto:false,n:1,opp:false,kind:"vanguards"};
+ if(/^choose one of your \[Glitter\] rear-guards$/i.test(s))return{t:"choose",upto:false,n:1,opp:false,kind:"rear-guards",glitter:true};
+ if(/^choose a card from your opponent's bind zone$/i.test(s))return{t:"chooseOppBindUp"};
+ if(/^choose all of your opponent's rear-guards$/i.test(s))return{t:"chooseAll",opp:true,kind:"rear-guards"};
+ if(/^choose all of your rear-guards$/i.test(s))return{t:"chooseAll",opp:false,kind:"rear-guards"};
+ if(/^choose one of your opponent's grade (\d) or greater rear-guards? not being attacked$/i.test(s)){const mm=s.match(/grade (\d)/i);return{t:"choose",upto:false,n:1,opp:true,kind:"rear-guards",grade:+mm[1],gcmp:"ge"}}
+ if(/^choose one of your opponent's rear-guards for every (\w+) cards in your soul$/i.test(s)){const mm=s.match(/every (\w+)/i);return{t:"chooseOppPerSoul",div:numOf(mm[1])}}
+ if(/^choose one of your columns$/i.test(s))return{t:"chooseColumn"};
+ if(/^retire all of your opponent's (?:units|rear-guards) in that column$/i.test(s))return{t:"colEffect",act:"retire"};
+ if(/^your opponent puts all of their rear-guards in that column on the bottom of their deck in any order$/i.test(s))return{t:"colEffect",act:"bottom"};
+ if(/^retire all of your rear-guards in the same column as this unit$/i.test(s))return{t:"colRetireSelf"};
+ if(/^retire all of your opponent's rear-guards in the same column as (?:this|that|the chosen) unit$/i.test(s))return{t:"colRetireOpp",ref:/this/i.test(s)?"this":"it"};
+ if(/^discard the top (\w+) cards? of your deck$/i.test(s)){const mm=s.match(/top (\w+)/i);return{t:"mill",n:numOf(mm[1])}}
+ if(/^\[Stand\] all of your grade (\d) rear-guards$/i.test(s)){const mm=s.match(/grade (\d)/i);return{t:"standAll",kind:"rear-guards",grade:+mm[1]}}
+ if(/^\[Stand\] all of your (?:or )?rear-guards$/i.test(s))return{t:"standAll",kind:"rear-guards"};
+ if(/^all of your grade (\d) units get "(Boost|Intercept)"(?: until end of turn)?$/i.test(s)){const mm=s.match(/grade (\d) units get "(Boost|Intercept)"/i);return{t:"grantKwAll",grade:+mm[1],kw:mm[2]}}
+ if(/^look at the same number of cards from the top of your deck as the number of your opponent's open \(RC\)$/i.test(s))return{t:"lookOpenRC",assist:true};
+ if(/^reveal up to one \[Critical\] trigger or \[Front\] trigger from your hand and put it on the top of your deck$/i.test(s))return{t:"hexaorbTop"};
+ if(/^\[overDress\] this card on your "Trickstar" on \(RC\) as \[Stand\]$/i.test(s))return{t:"ergerOD"};
+ if(/^put all "Trickstar" and cards with the \[overDress\] ability from your drop as this unit's originalDress$/i.test(s))return{t:"esperaOD"};
+ if(/^perform all of the following according to the number of attacks you made this turn$/i.test(s))return{t:"tiers",metric:"battles"};
+ if(/^perform all of the following according to the trigger units revealed in that battle's drive check$/i.test(s))return{t:"tiersDriveTrig"};
+ if(/^perform all of the following(?: instead)?$/i.test(s))return{t:"allOf"};
+ if(/^perform "draw a card" or "\[Counter-Charge 1\]"$/i.test(s))return{t:"choice",opts:[{t:"draw",n:1},{t:"cc",n:1}]};
+ if(/^\[Soul-Charge 1\] for every (\w+) cards in your damage zone$/i.test(s)){const mm=s.match(/every (\w+)/i);return{t:"scPerDmg",div:numOf(mm[1])}}
+ if(/^\[Soul-Charge 1\] for each grade of the imprisoned card$/i.test(s))return{t:"sc",n:1};
+ if(/^put this unit into your soul at the end of turn$/i.test(s))return{t:"later",when:"turn",steps:[{t:"self",to:"soul"}]};
+ if(/^All of your opponent's front row rear-guards cannot \[Stand\] during the next stand phase$/i.test(s))return{t:"freezeOppFront"};
+ if(/^choose up to three of your back row \[Stand\] units with "Boost"$/i.test(s))return{t:"boostAllBack"};
+ if(/^choose up to a total of two Arms cards from your hand or drop$/i.test(s))return{t:"chooseArms",zones:["hand","drop"],n:2};
+ if(/^choose up to one World card from your hand or drop$/i.test(s))return{t:"chooseWorldHandDrop"};
+ if(/^call Shadow Army tokens up to the same number of cards put into drop for this cost to your \(RC\) with a unit$/i.test(s))return{t:"orfistMasquesTokens"};
+ if(/^call a Shadow Army token to this unit's \(RC\) as \[Rest\]$/i.test(s))return{t:"tokenSelfRC",kind:"Shadow Army",rest:true};
+ if(/^call this card to your back row \(RC\) as \[Rest\]$/i.test(s))return{t:"callSelf",back:true,rest:true};
+ if(/^it cannot be hit by a grade 2 or lower unit's attack until end of that battle$/i.test(s))return{t:"nohitGradeLE",g:2};
+ if(/^both you and your opponent choose one of your own rear-guards$/i.test(s))return{t:"bothChooseRg"};
+ if(/^the \[Power\] increase of trigger effects revealed for your drive check get \+(\d+)$/i.test(s)){const mm=s.match(/\+(\d+)/);return{t:"trigPowBonus",n:+mm[1]}}
+ if(/^all of your opponent's rear-guards lose all of their \[CONT\] abilities$/i.test(s))return{t:"noop"};
+ if(/^it cannot be chosen by your opponent's card effects$/i.test(s))return{t:"noop"};
+ if(/^when you would \[Soul-Charge\] by your card's ability$/i.test(s))return{t:"scBonusTurn",n:1};
+ if(/^call each of them to \(RC\) in the same column$/i.test(s))return{t:"callIt"};
+ if(/^reveal it and put it on the bottom of your deck$/i.test(s))return{t:"itTo",to:"deckBottom"};
+ if(/^they get §G(\d)§(?: until end of your opponent's turn)?$/i.test(s)){const mm=s.match(/§G(\d)§/);return{t:"grant",who:"it",g:+mm[1],dur:"turn"}}
+ if(/^§G(\d)§$/i.test(s)){const mm=s.match(/§G(\d)§/);return{t:"grant",who:"this",g:+mm[1],dur:"turn"}}
  if(/^choose a set order from your drop$/i.test(s))return{t:"chooseDropSetOrder"};
  if(/^bind all of the cards on the chosen \(RC\)$/i.test(s))return{t:"shojodojiBind2"};
  if(/^your opponent puts those cards into their hand at the end of that turn$/i.test(s))return{t:"noop"};
@@ -4096,6 +4255,7 @@ function parseAbility(line){
  const km=line.match(/^\[(AUTO|ACT|CONT)\]/);
  if(!km){_pc.set(key0,null);return null}
  const r={text:full.replace(/ ◆/g,"\n・"),kind:km[1],zones:null,row:null,once:false,ev:null,conds:[],steps:[],manualRest:null,auto:false,hasCost:false};
+ line=line.replace(/^\[(AUTO|ACT|CONT)\]:\(/,"[$1](").replace(/^(\[(?:AUTO|ACT|CONT)\][^:]+?)(\[COST\])/,"$1:$2");
  const ci0=line.indexOf(":");
  const head=ci0>=0?line.slice(km[0].length,ci0):"";
  let body=(ci0>=0?line.slice(ci0+1):line.slice(km[0].length)).trim();
@@ -4105,7 +4265,10 @@ function parseAbility(line){
  if(/Front Row/i.test(head))r.row="front";if(/Back Row/i.test(head))r.row="back";if(/Back Row (?:Center|Middle)/i.test(head))r.row="bc";
  r.once=/1\/turn/i.test(head);
  {const gm=head.match(/Generation Break (\d)/i);r.gb=gm?+gm[1]:0}
- for(let g=0;g<3;g++)body=body.replace(/\s*[(（](?:[^()（）]|[(（][^()（）]*[)）])*[)）]\s*$/,"").trim();
+ for(let g=0;g<4;g++)body=body.replace(/\s*[(（](?:[^()（）]|[(（][^()（）]*[)）])*[)）]\s*$/,"").trim();
+ body=body.replace(/^While you are paying the cost for this ability,[^.]*\.\s*/i,"");
+ body=body.replace(/^You may pay "[^"]*" for this cost\.\s*/i,"");
+ body=body.replace(/^If one or more of your opponent's cards this unit gets /i,"If one or more of your opponent's cards are imprisoned in your Prison, this unit gets ");
  body=body.replace(/\s*[(（][^()（）]{12,}[)）]/g,"");
  r.grants=[];
  body=body.replace(/"((?:\[)?(?:AUTO|CONT|ACT)(?:\])?[\s\S]*?[.!])"\.?/g,(m0,g1)=>{const fixed=g1.replace(/^(AUTO|CONT|ACT)/,"[$1]");r.grants.push(fixed);return"§G"+(r.grants.length-1)+"§"});
@@ -4122,6 +4285,8 @@ function parseAbility(line){
  }
  body=body.replace(/(?:until end of turn, )?the next time you would Alchemagic an order and play it(?: this turn)?, reduce that cost by \[Counter-Blast (\d)\]/i,"§ALCHRED$1§").replace(/until end of turn, the next time you would Alchemagic an order and play it, you may choose not to pay all of that cost's \[Soul-Blast\]/i,"§ALCHFREESB§");
  body=body.replace(/your opponent chooses (\w+) cards? each from their hand, rear-guards, and soul, and imprisons them in your Prison/i,"§OPPIMP$1§");
+ body=body.replace(/when your opponent would call cards from (?:their )?hand to \(GC\), they must call (two|three) or more at the same time/gi,(_,w)=>"§GUARDMIN"+numOf(w)+"§");
+ body=body.replace(/\s*\([^)]*$/,"").trim();
  const cl=splitClauses(body);
  let started=false,pendDur=null;
  for(let i=0;i<cl.length;i++){
@@ -4154,7 +4319,11 @@ function parseAbility(line){
   const prevSt=r.steps[r.steps.length-1];
   if(prevSt&&prevSt.t==="solraironDeclare"&&/^reveal the top card of your deck$/i.test(c))continue;
   if(prevSt&&prevSt.t==="gandeevaAct"&&/^Reveal the top five cards of your deck$/i.test(c))continue;
-  const st=parseStep(c);
+  let st=parseStep(c);
+  if(!st&&!/^(?:choose|draw|retire|put|call|bind|reveal|search|look|discard|shuffle|imprison|operate|arm|lock|unlock)/i.test(c)){
+   let chit=null;for(const[re,f]of CONDS){const mm=("if "+c).match(re);if(mm){chit=f(mm);break}}
+   if(chit){if(!started)r.conds.push(chit);else r.steps.push({t:"if",cond:chit});continue}
+  }
   if(!st){r.manualRest=cl.slice(i).join(", ");break}
   started=true;
   if(st.t==="buff"&&!st.dur&&pendDur){st.dur=pendDur}
@@ -4587,6 +4756,10 @@ function condSync(c,ctx){
   case"placedFromDropTurn":return !!P.placedFromDropTurn;
   case"rideDeckFaceUpVg":return !!vg&&P.ride.some(x=>!x.down&&cd(x).name===vg.name);
   case"rgPlacedByAbTurn":return units(s).some(([k,x])=>k!=="VC"&&x.placedByAbility);
+  case"atkCritEff":return !!B&&(unitCrit(B.att)>=2);
+  case"vgHasAndOppG3":return !!vg&&vg.name.includes(c.s)&&vgGrade(1-s)>=3;
+  case"oppRgLE1OrOrder":return units(1-s).filter(x=>x[0]!=="VC").length<=1||P.ordersPlayed>0;
+  case"notBasePutTurn":return !P.basePutTurn;
  }
  return null;
 }
@@ -4608,6 +4781,7 @@ function metricVal(m,ctx){
   case"soulCalamityNames":return new Set(P.soul.filter(x=>raceHas(x,"Calamity")).map(x=>cd(x).name)).size;
   case"bindDown":return P.removed.filter(x=>x.faceDown).length;
   case"varCount":return ctx.varCount||ctx.orderDropCount||0;
+  case"battles":return P.battles||0;
  }
  return 0;
 }
@@ -4664,7 +4838,7 @@ function unitPower(u){
  if(w){const P=G.p[w.s];
   const pMult=P.personaCount||(P.persona?1:0);
   const backPersona=P.c.VC&&cd(P.c.VC).body.some(l=>/persona ride also increases the \[Power\] of your back row/i.test(l));
-  if(pMult&&(FRONT.includes(w.k)||backPersona))p+=10000*pMult;
+  if(pMult&&(FRONT.includes(w.k)||backPersona)){const oathV=P.order.some(x=>cd(x).name==="Oath of Vengeance, Thegrea")&&P.c.VC&&cd(P.c.VC).name.includes("Thegrea");p+=(oathV?15000:10000)*pMult}
   if(w.k==="VC"&&P.attached.length)for(const at of P.attached)p+=(cd(at).power||0)+at.pw+at.bpw;
   if(FRONT.includes(w.k)&&G.turn===w.s&&P.c.VC&&cd(P.c.VC).name==="Scarlet Flame Marshal Dragon, Gandeeva")p+=P.removed.filter(x=>x.faceDown).length*2000;
   if(w.k!=="VC"&&FRONT.includes(w.k)&&P.noRgFrontPow&&!units(1-w.s).some(x=>x[0]!=="VC"))p+=P.noRgFrontPow;
@@ -4675,13 +4849,14 @@ function unitPower(u){
   if(P.mk[w.k]&&G.turn===w.s&&P.c.VC&&/Dragontree|Masques/.test(cd(P.c.VC).name))p+=5000;
   if(P.mk[w.k]&&G.turn===w.s&&P.c.VC&&cd(P.c.VC).name.includes("Magnolia Masques")&&w.k!=="VC")p+=10000;
   if(w.k==="VC"&&G.turn===w.s&&P.fightVgPow)p+=P.fightVgPow;
+  if(w.k==="VC"&&G.turn===w.s&&c.name.includes("Nirvana")&&units(w.s).some(([k2,x])=>FRONT.includes(k2)&&k2!=="VC"&&cd(x).name.includes("Stravairina")&&inOD(x,"x")))p+=10000;
   if((P.crest==="Alter Ego Messiah"||P.crest==="Chronojet Dragon")&&G.turn===w.s&&FRONT.includes(w.k))p+=P.gz.filter(x=>!x.down).length*5000;
  }
  return p;
 }
 function unitCrit(u){const c=cd(u),w=whereIs(u);const fg=(w&&w.k==="VC"&&G.turn===w.s)?(G.p[w.s].fightVgCrit||0):0;return Math.max(0,(c.crit==null?1:c.crit)+u.cr+u.bcr+fg+(w?contBonus(u,"critical",w.k==="VC"?"VC":"RC",w.s,w.k):0))}
 function guardShield(u,s){let sh=(cd(u).shield||0)+u.bsh+contBonus(u,"shield","GC",s,null);const O=G.p[1-s];if(O&&O.shieldMinusTrigIcons&&cd(u).trig&&O.removed.some(x=>cd(x).trig===cd(u).trig))sh=Math.max(0,sh-5000);return sh}
-function unitDrive(u){const base=Math.max(cd(u).drive||1,hasKw(u,"Triple Drive")?3:hasKw(u,"Twin Drive")?2:1);const w=whereIs(u);return Math.max(0,base+u.dr+(w?contBonus(u,"drive",w.k==="VC"?"VC":"RC",w.s,w.k):0))}
+function unitDrive(u){const w=whereIs(u);const stravTD=w&&w.k==="VC"&&G.turn===w.s&&cd(u).name.includes("Nirvana")&&units(w.s).some(([k2,x])=>FRONT.includes(k2)&&k2!=="VC"&&cd(x).name.includes("Stravairina")&&inOD(x,"x"));const base=Math.max(cd(u).drive||1,(hasKw(u,"Triple Drive")||stravTD)?3:hasKw(u,"Twin Drive")?2:1);return Math.max(0,base+u.dr+(w?contBonus(u,"drive",w.k==="VC"?"VC":"RC",w.s,w.k):0))}
 
 /* fallback reminders for texts whose timing the parser does not know */
 const REM={rodeUpon:/rode upon|placed by riding/i,placeVC:/placed on \(VC\)|placed by riding/i,placeRC:/placed on \(RC\)|\(VC\) or \(RC\)/i,attack:/attacks/i,hit:/hits/i,boost:/boosts/i,gc:/put on \(GC\)|\(GC\)/i};
@@ -4865,12 +5040,19 @@ const BGM_DECKS=[
  {re:/Nirvana|Vairina/i,id:"5VBErIeKovc",title:"He Said (Nirvana)"},
  {re:/Bavsargra/i,id:"TrnD4l0OrxM",title:"erchiglhaad (Bavsargra)"},
  {re:/Bruce|Diabolos/i,id:"VCO143uRj-4",title:"Silent Bark (Bruce)"},
- {re:/Drajeweled|Bastion/i,id:"spe2fiA2UuU",title:"Caution (Drajeweled / Bastion)"},
- {re:/Magnolia|Seraph/i,id:"K_03EO1KgAY",title:"Make a Splash! (Magnolia / Seraph)"},
+ {re:/Bastion/i,id:"spe2fiA2UuU",title:"Caution (Bastion)"},
+ {re:/Magnolia/i,id:"K_03EO1KgAY",title:"Make a Splash! (Magnolia)"},
  {re:/Lianorn/i,id:"U_pZfxZRZi0",title:"Vidhelvasti (Lianorn)"},
  {re:/Zorga/i,id:"6GaFpmqaKl0",title:"Into the Cemetery (Zorga)"},
  {re:/Kairi|Astesice|Clarissa|Alestiel|Loronerol|Feltyrosa|Wilista|Luticia|Michu|Krysrain|Petralka/i,id:"Eo1RQQCYdvc",title:"Brand New!! (Lyrical Monasterio)"}
 ];
+function ytIdFrom(str){
+ if(!str)return null;
+ str=str.trim();
+ if(/^[A-Za-z0-9_-]{11}$/.test(str))return str;
+ const m=str.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([A-Za-z0-9_-]{11})/);
+ return m?m[1]:null;
+}
 const BGM={
  on:lsGet("vg.bgmOn",true),curId:null,curMode:null,curTitle:"",
  ui(){
@@ -4898,6 +5080,11 @@ const BGM={
   this.ui();
  },
  deckTheme(s){
+  if(G&&G.cfg){
+   const dk=s===0?G.cfg.d0:G.cfg.d1;
+   const cid=dk&&ytIdFrom(dk.bgm);
+   if(cid)return{id:cid,title:`เพลงประจำเด็ค (${dk.name||"Custom"})`};
+  }
   if(!G||!G.p[s]||!G.p[s].c.VC)return null;
   const c=cd(G.p[s].c.VC);
   const hit=BGM_DECKS.find(x=>x.re.test(c.name));
@@ -4936,7 +5123,230 @@ const BGM={
   this.on=!this.on;lsSet("vg.bgmOn",this.on);
   if(!this.on)this.stop(true);
   else if(G&&!G.over)this.onTurnStart(G.turn);
+  else if(!$("#play").hidden)this.play(BGM_NATION._default,"base");
   else this.ui();
+ }
+};
+
+
+/* =====================  v31: VOICE STUDIO (CUSTOM MIC + JA-JP TTS MALE/FEMALE)  ===================== */
+const VOICE_CUES=[
+ {k:"standup",label:"Stand Up, Vanguard!",jp:"スタンドアップ・ヴァンガード！",grp:"เปิดเกม & ไรด์"},
+ {k:"persona",label:"Persona Ride!",jp:"ペルソナライド！",grp:"เปิดเกม & ไรด์"},
+ {k:"revol",label:"RevolDress!",jp:"レヴォルドレス！",grp:"เปิดเกม & ไรด์"},
+ {k:"stride",label:"Stride Generation!",jp:"ストライド・ジェネレーション！",grp:"เปิดเกม & ไรด์"},
+ {k:"drive",label:"Drive Check!",jp:"ドライブチェック！",grp:"เช็ค & ทริกเกอร์"},
+ {k:"damage",label:"Damage Check!",jp:"ダメージチェック！",grp:"เช็ค & ทริกเกอร์"},
+ {k:"crit",label:"Critical Trigger!",jp:"クリティカルトリガー！",grp:"เช็ค & ทริกเกอร์"},
+ {k:"front",label:"Front Trigger!",jp:"フロントトリガー！",grp:"เช็ค & ทริกเกอร์"},
+ {k:"draw",label:"Draw Trigger!",jp:"ドロートリガー！",grp:"เช็ค & ทริกเกอร์"},
+ {k:"heal",label:"Heal Trigger!",jp:"ヒールトリガー！",grp:"เช็ค & ทริกเกอร์"},
+ {k:"over",label:"Over Trigger!!",jp:"オーバートリガー！",grp:"เช็ค & ทริกเกอร์"},
+ {k:"noguard",label:"No Guard!",jp:"ノーガード！",grp:"ป้องกัน & กิมมิก"},
+ {k:"pg",label:"Perfect Guard! (Sentinel)",jp:"完全ガード！",grp:"ป้องกัน & กิมมิก"},
+ {k:"alch",label:"Alchemagic! (ผสานเวท)",jp:"魔合成！",grp:"ป้องกัน & กิมมิก"},
+ {k:"overdress",label:"overDress / XoverDress!",jp:"オーバードレス！",grp:"ป้องกัน & กิมมิก"}
+];
+const VOICE={
+ on:lsGet("vg.vOn",true),
+ tts:lsGet("vg.vTts",true),
+ gender:lsGet("vg.vGen","female"),
+ voiceURI:lsGet("vg.vUri",""),
+ blobs:{},urls:{},
+ rec:null,recKey:null,recChunks:[],recStream:null,
+ uploadKey:null,
+ saveCfg(){
+  lsSet("vg.vOn",this.on);lsSet("vg.vTts",this.tts);
+  lsSet("vg.vGen",this.gender);lsSet("vg.vUri",this.voiceURI);
+  this.ui();
+ },
+ ui(){
+  const b=$("#pvoice");
+  if(b){b.textContent=this.on?"🎙️":"🔇🎙️";b.title=this.on?`เสียงพากย์: เปิด (${this.gender==="male"?"ชาย":"หญิง"} ญี่ปุ่น) · คลิกเพื่อตั้งค่า/อัดเสียง`:"เสียงพากย์: ปิด · คลิกเพื่อเปิด/อัดเสียง"}
+ },
+ async load(){
+  for(const c of VOICE_CUES){
+   const b=await idbGet("voice:"+c.k);
+   if(b instanceof Blob){this.blobs[c.k]=b;this.urls[c.k]=URL.createObjectURL(b)}
+  }
+  if(window.speechSynthesis){speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>{if(!$("#voiceModal").hidden)this.renderModal()}}
+  this.ui();
+ },
+ jaVoices(){
+  if(!window.speechSynthesis)return[];
+  return speechSynthesis.getVoices().filter(v=>/^ja/i.test(v.lang));
+ },
+ pickJaVoice(){
+  const vs=this.jaVoices();if(!vs.length)return{v:null,matched:false};
+  if(this.voiceURI){const ex=vs.find(v=>v.voiceURI===this.voiceURI);if(ex)return{v:ex,matched:true}}
+  const isM=v=>/otoya|keita|ichiro|hattori|daichi|naoki|male|男/i.test(v.name);
+  const isF=v=>/kyoko|nanami|haruka|ayumi|sayaka|o-ren|female|女|google 日本語/i.test(v.name);
+  if(this.gender==="male"){
+   const m=vs.find(isM);if(m)return{v:m,matched:true};
+   return{v:vs[0],matched:false};
+  }else{
+   const f=vs.find(isF)||vs.find(v=>!isM(v));if(f)return{v:f,matched:true};
+   return{v:vs[0],matched:false};
+  }
+ },
+ speakJa(text){
+  if(!window.speechSynthesis)return;
+  try{
+   speechSynthesis.cancel();
+   const u=new SpeechSynthesisUtterance(text);
+   u.lang="ja-JP";
+   const{v,matched}=this.pickJaVoice();
+   if(v)u.voice=v;
+   if(this.gender==="male"){
+    u.pitch=matched?0.95:0.68;u.rate=1.06;
+   }else{
+    u.pitch=matched?1.12:1.25;u.rate=1.08;
+   }
+   u.volume=0.95;
+   speechSynthesis.speak(u);
+  }catch(_){}
+ },
+ play(key,force=false){
+  if(!force&&!this.on)return;
+  if(this.urls[key]){
+   try{const a=new Audio(this.urls[key]);a.volume=0.95;a.play().catch(()=>{})}catch(_){}
+   return;
+  }
+  if(!this.tts&&!force)return;
+  const c=VOICE_CUES.find(x=>x.k===key);
+  if(c)this.speakJa(c.jp);
+ },
+ async setBlob(key,blob){
+  this.blobs[key]=blob;
+  if(this.urls[key])URL.revokeObjectURL(this.urls[key]);
+  this.urls[key]=URL.createObjectURL(blob);
+  await idbSet("voice:"+key,blob);
+ },
+ async delBlob(key){
+  delete this.blobs[key];
+  if(this.urls[key]){URL.revokeObjectURL(this.urls[key]);delete this.urls[key]}
+  try{const db=await idb();await new Promise(r=>{const t=db.transaction("kv","readwrite");t.objectStore("kv").delete("voice:"+key);t.oncomplete=r;t.onerror=r})}catch(_){}
+ },
+ async toggleRec(key){
+  if(this.rec&&this.rec.state==="recording"){
+   const wasSame=this.recKey===key;
+   this.rec.stop();
+   if(wasSame)return;
+  }
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+   flash("เบราว์เซอร์นี้ไม่รองรับการอัดไมโครโฟน (ต้องเปิดผ่าน HTTPS หรือ localhost)");return;
+  }
+  try{
+   const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+   this.recStream=stream;this.recKey=key;this.recChunks=[];
+   const mr=new MediaRecorder(stream);
+   this.rec=mr;
+   mr.ondataavailable=e=>{if(e.data&&e.data.size>0)this.recChunks.push(e.data)};
+   mr.onstop=async()=>{
+    const k=this.recKey,chunks=this.recChunks.slice();
+    if(this.recStream)this.recStream.getTracks().forEach(t=>t.stop());
+    this.rec=null;this.recKey=null;this.recStream=null;
+    if(chunks.length&&k){
+     const blob=new Blob(chunks,{type:mr.mimeType||"audio/webm"});
+     await this.setBlob(k,blob);
+     this.play(k,true);
+    }
+    this.renderModal();
+   };
+   mr.start();
+   this.renderModal();
+  }catch(err){
+   flash("ไม่สามารถเข้าถึงไมโครโฟนได้: "+(err.message||"ถูกปฏิเสธสิทธิ์"));
+  }
+ },
+ async exportPack(){
+  const keys=Object.keys(this.blobs);
+  if(!keys.length){flash("ยังไม่มีเสียงอัดเองให้ส่งออก");return}
+  const out={v:1,voices:{}};
+  for(const k of keys){
+   const b=this.blobs[k];
+   const dataUrl=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(b)});
+   out.voices[k]=dataUrl;
+  }
+  const blob=new Blob([JSON.stringify(out)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="my-vanguard-voice.vgvoice";document.body.appendChild(a);a.click();a.remove();
+  flash(`ส่งออกแพ็กเสียงพากย์ ${keys.length} ช่องแล้ว!`);
+ },
+ async importPack(file){
+  try{
+   const obj=JSON.parse(await file.text());
+   const vs=obj.voices||{};let n=0;
+   for(const[k,url]of Object.entries(vs)){
+    if(!VOICE_CUES.some(x=>x.k===k))continue;
+    const res=await fetch(url);const blob=await res.blob();
+    await this.setBlob(k,blob);n++;
+   }
+   this.renderModal();flash(`นำเข้าแพ็กเสียงพากย์ ${n} ช่องแล้ว!`);
+  }catch(e){flash("ไฟล์แพ็กเสียงไม่ถูกต้อง")}
+ },
+ open(){$("#voiceModal").hidden=false;this.renderModal()},
+ close(){
+  if(this.rec&&this.rec.state==="recording")this.rec.stop();
+  $("#voiceModal").hidden=true;$("#voiceModal").innerHTML="";
+ },
+ renderModal(){
+  const m=$("#voiceModal");if(!m||m.hidden)return;
+  const vs=this.jaVoices();
+  const recCnt=Object.keys(this.blobs).length;
+  m.innerHTML=`<div class="mbox">
+   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+    <h3>🎙️ Voice Studio (ห้องอัดเสียง & เสียงญี่ปุ่น)</h3>
+    <span class="chip ${recCnt?"ok":""}">อัดเองแล้ว ${recCnt}/${VOICE_CUES.length}</span>
+   </div>
+   <div class="vs-top">
+    <label><input type="checkbox" id="vsOn" ${this.on?"checked":""}> เปิดเสียงพากย์ในเกม</label>
+    <label><input type="checkbox" id="vsTts" ${this.tts?"checked":""}> ใช้เสียงเบราว์เซอร์ญี่ปุ่น (ช่องที่ไม่ได้อัด)</label>
+    <span class="vs-seg">
+     <button data-vg="female" class="${this.gender==="female"?"on":""}">👩 เสียงหญิง (JP)</button>
+     <button data-vg="male" class="${this.gender==="male"?"on":""}">👨 เสียงชาย (JP)</button>
+    </span>
+    ${vs.length?`<select id="vsSel" style="max-width:210px;font-size:12px" title="เลือกเสียงญี่ปุ่นในเครื่อง"><option value="">อัตโนมัติตามเพศ (${vs.length} เสียง JP)</option>${vs.map(v=>`<option value="${esc(v.voiceURI)}" ${v.voiceURI===this.voiceURI?"selected":""}>${esc(v.name)}</option>`).join("")}</select>`:`<span class="note">ใช้เสียง ja-JP เริ่มต้นของระบบ</span>`}
+   </div>
+   <div class="vs-list">
+    ${VOICE_CUES.map(c=>{
+     const has=!!this.blobs[c.k],isR=this.recKey===c.k;
+     return `<div class="vs-row ${has?"custom":""} ${isR?"rec":""}">
+      <div class="vs-info">
+       <b>${esc(c.label)} <span class="vs-tag">${isR?"🔴 กำลังอัด...":has?"🎤 เสียงอัดเอง":"🇯🇵 TTS ญี่ปุ่น"}</span></b>
+       <small>${esc(c.grp)} · 「${esc(c.jp)}」</small>
+      </div>
+      <div class="vs-btns">
+       <button data-va="play" data-k="${c.k}" title="ลองฟังเสียง">▶ ฟัง</button>
+       <button data-va="rec" data-k="${c.k}" class="${isR?"rec-on":""}">${isR?"⏹ หยุด":"🎙️ อัด"}</button>
+       <button data-va="up" data-k="${c.k}" title="อัปโหลดไฟล์เสียง .mp3/.wav">📂</button>
+       ${has?`<button data-va="del" data-k="${c.k}" title="ลบเสียงอัดเองกลับไปใช้ TTS ญี่ปุ่น">🗑</button>`:""}
+      </div>
+     </div>`;
+    }).join("")}
+   </div>
+   <div class="mbtn" style="justify-content:space-between">
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+     <button id="vsExp">📤 ส่งออกแพ็กเสียง</button>
+     <button id="vsImp">📥 นำเข้าแพ็กเสียง</button>
+    </div>
+    <button id="vsClose" class="big">ปิด</button>
+   </div>
+  </div>`;
+  $("#vsOn").onchange=e=>{this.on=e.target.checked;this.saveCfg()};
+  $("#vsTts").onchange=e=>{this.tts=e.target.checked;this.saveCfg()};
+  const sel=$("#vsSel");if(sel)sel.onchange=e=>{this.voiceURI=e.target.value;this.saveCfg()};
+  m.querySelectorAll("[data-vg]").forEach(b=>b.onclick=()=>{this.gender=b.dataset.vg;this.voiceURI="";this.saveCfg();this.renderModal();this.speakJa("スタンドアップ・ヴァンガード！")});
+  m.querySelectorAll("[data-va]").forEach(b=>b.onclick=()=>{
+   const a=b.dataset.va,k=b.dataset.k;
+   if(a==="play")this.play(k,true);
+   else if(a==="rec")this.toggleRec(k);
+   else if(a==="up"){this.uploadKey=k;$("#fVoiceOne").click()}
+   else if(a==="del")this.delBlob(k).then(()=>this.renderModal());
+  });
+  $("#vsExp").onclick=()=>this.exportPack();
+  $("#vsImp").onclick=()=>$("#fVoicePack").click();
+  $("#vsClose").onclick=()=>this.close();
+  m.onclick=e=>{if(e.target.id==="voiceModal")this.close()};
  }
 };
 
@@ -4955,7 +5365,7 @@ async function startGame(cfg){
  _lastPow.clear();
  for(const s of[0,1])G.p[s].c.VC.down=false;
  const v0=cd(G.p[0].c.VC).name,v1=cd(G.p[1].c.VC).name;
- SFX.epic();showCutin("STAND UP! VANGUARD!",`${v0}  VS  ${v1}`,"standup");
+ SFX.epic();VOICE.play("standup");showCutin("STAND UP! VANGUARD!",`${v0}  VS  ${v1}`,"standup");
  pushFeed(0,"STAND UP!",v0,G.p[0].c.VC.no);pushFeed(1,"STAND UP!",v1,G.p[1].c.VC.no);
  log(`Stand Up! Vanguard! (${v0} vs ${v1})`);render();
  document.querySelectorAll('.cell[data-circ="VC"] .ch').forEach(el=>el.classList.add("vg-standup"));
@@ -5004,7 +5414,7 @@ async function playTurn(s){
  P.vg3=vgGrade(s)>=3;P.alch=false;
  for(const t of[0,1])for(const[k,u]of units(t)){u.used={};u.actCount={};u.trigModTurn=false}
  G.phase="stand";SFX.turn();BGM.onTurnStart(s);pushFeed(s,"STAND / DRAW",`เทิร์น ${G.n}`);log(`— เทิร์น ${G.n}: ${SIDE[s]} —`);
- for(const[k,u]of units(s)){if(u.cantStand){u.cantStand=false;log(`${cd(u).name} ไม่สามารถสแตนด์ได้ในสแตนด์เฟสนี้!`)}else u.rest=false;u.stoodByEff=false;u.placedByAbility=false;u.attacksThisTurn=0}P.order.forEach(u=>u.rest=false);P.ordersPlayed=0;P.personaRode=false;P.personaCount=0;P.operated=false;P.extraArms=false;P.oppRet=0;P.myRet=0;P.scTurn=0;P.ccTurn=0;P.maxVgSbTurn=0;P.boostCountTurn=0;P.botDeckTurn=false;G.p[1-s].botDeckTurn=false;P.rodeThisTurn=false;P.rodeFromName=null;P.rodeFromG3=false;P.rodeG3ThisTurn=false;P.rodeByEffTurn=false;P.vgHitTurn=false;P.vgAttackedTurn=false;P.vgHitByOppTurn=false;P.blasterRetCost=0;P.rgDrive=false;P.nullTrigIcons=false;P.shieldMinusTrigIcons=false;P.noBlitzTurn=false;P.atkBackRow=false;P.moveSameRow=false;P.actCBRed=0;P.attachedThisTurn=false;P.cantRide=false;P.fromSoulCountTurn=0;P.placedFromDropTurn=false;P.rcToSoulCountTurn=0;P.vermilionMulti=false;P.bindOnHit=false;P.noRgFrontPow=0;G.p[0].battles=0;G.p[1].battles=0;sweep();render();await pause(.7);if(dead())return;
+ for(const[k,u]of units(s)){if(u.cantStand){u.cantStand=false;log(`${cd(u).name} ไม่สามารถสแตนด์ได้ในสแตนด์เฟสนี้!`)}else u.rest=false;u.stoodByEff=false;u.placedByAbility=false;u.attacksThisTurn=0}P.order.forEach(u=>u.rest=false);P.ordersPlayed=0;P.personaRode=false;P.personaCount=0;P.operated=false;P.extraArms=false;P.oppRet=0;P.myRet=0;P.scTurn=0;P.ccTurn=0;P.maxVgSbTurn=0;P.boostCountTurn=0;P.botDeckTurn=false;G.p[1-s].botDeckTurn=false;P.rodeThisTurn=false;P.rodeFromName=null;P.rodeFromG3=false;P.rodeG3ThisTurn=false;P.rodeByEffTurn=false;P.vgHitTurn=false;P.vgAttackedTurn=false;P.vgHitByOppTurn=false;P.blasterRetCost=0;P.rgDrive=false;P.nullTrigIcons=false;P.shieldMinusTrigIcons=false;P.noBlitzTurn=false;P.atkBackRow=false;P.moveSameRow=false;P.actCBRed=0;P.attachedThisTurn=false;P.cantRide=false;P.fromSoulCountTurn=0;P.placedFromDropTurn=false;P.rcToSoulCountTurn=0;P.vermilionMulti=false;P.bindOnHit=false;P.noRgFrontPow=0;P.trigPowBonus=0;P.scBonusTurn=0;G.p[0].battles=0;G.p[1].battles=0;sweep();render();await pause(.7);if(dead())return;
  G.phase="draw";if(!draw(s,1))return;pushFeed(s,"DRAW 1",`${SIDE[s]}จั่วการ์ด`);log(`${SIDE[s]}จั่ว 1 ใบ`);render();await pause(.55);if(dead())return;
  G.phase="ride";showPhaseBanner("RIDE PHASE",`เทิร์น ${G.n} · ${SIDE[s]}`);render();
  await fireAll(s,"ridestart");if(dead())return;
@@ -5102,7 +5512,7 @@ async function doRide(s,u,from,disc,opts){
  for(const x of P.arms.slice()){const a=armSide(x);if(!a||a.name!==c.name)moveCard(x,"drop")}
  P.rodeThisTurn=true;if(opts.superior)P.rodeByEffTurn=true;P.rodeFromName=oc.name;if((oc.grade||0)===3)P.rodeFromG3=true;if((c.grade||0)>=3)P.rodeG3ThisTurn=true;
  pushFeed(s,persona?"PERSONA RIDE":"RIDE",c.name,u.no);log(`${SIDE[s]}ไรด์ ${c.name} (G${c.grade})${opts.superior?` ด้วยสกิล${opts.by==="revol"?" RevolDress":""}`:from==="ride"?` จากไรด์เด็ค ทิ้ง ${disc?cd(disc).name:"-"}`:" จากมือ"}`);
- if(persona){draw(s,1);P.persona=true;P.personaCount=(P.personaCount||0)+1;P.personaRode=true;if(G.stats)G.stats.persona[s]++;SFX.epic();showSummonCutin(u,"PERSONA RIDE! · จั่ว 1 / แถวหน้า +10,000");log(`${SIDE[s]} Persona Ride (x${P.personaCount}): จั่ว 1 ใบ ยูนิตแถวหน้า +10000 จนจบเทิร์น`)}else if(opts.by==="revol"){SFX.epic();const fm=/Zest/i.test(c.name)?"zest":/Gust/i.test(c.name)?"gust":/Tempest/i.test(c.name)?"tempest":"full";showArchFX("revol",{form:fm});showSummonCutin(u,"REVOLDRESS!");BGM.triggerClimax(s,"RevolDress")}else if(c.name.includes("Thegrea")&&oc.name.includes("Thegrea")){SFX.epic();showArchFX("thegrea");showSummonCutin(u,"LIGHT & DARK RIDE!")}else if(c.name.includes("Masques")){SFX.epic();showSummonCutin(u,"MASQUES RIDE!")}else if((c.grade||0)>=3){SFX.epic();showSummonCutin(u,"VANGUARD RIDE!")}else SFX.ride();
+ if(persona){const oathV=P.order.some(x=>cd(x).name==="Oath of Vengeance, Thegrea")&&c.name.includes("Thegrea");draw(s,oathV?2:1);P.persona=true;P.personaCount=(P.personaCount||0)+1;P.personaRode=true;if(G.stats)G.stats.persona[s]++;SFX.epic();VOICE.play("persona");showSummonCutin(u,"PERSONA RIDE! · จั่ว 1 / แถวหน้า +10,000");log(`${SIDE[s]} Persona Ride (x${P.personaCount}): จั่ว 1 ใบ ยูนิตแถวหน้า +10000 จนจบเทิร์น`)}else if(opts.by==="revol"){SFX.epic();const fm=/Zest/i.test(c.name)?"zest":/Gust/i.test(c.name)?"gust":/Tempest/i.test(c.name)?"tempest":"full";showArchFX("revol",{form:fm});VOICE.play("revol");showSummonCutin(u,"REVOLDRESS!");BGM.triggerClimax(s,"RevolDress")}else if(c.name.includes("Thegrea")&&oc.name.includes("Thegrea")){SFX.epic();showArchFX("thegrea");showSummonCutin(u,"LIGHT & DARK RIDE!")}else if(c.name.includes("Masques")){SFX.epic();showSummonCutin(u,"MASQUES RIDE!")}else if((c.grade||0)>=3){SFX.epic();showSummonCutin(u,"VANGUARD RIDE!")}else SFX.ride();
  render();await pause(.5);
  if(from==="ride"&&disc)await fire("discarded",s,disc,{where:"Drop",phase:"ride"});
  await fire("rode",s,old,{where:"Soul",by:u});remind(s,old,"rodeUpon");
@@ -5169,7 +5579,7 @@ async function strideStep(s){
  pay.forEach(x=>moveCard(x,"drop"));
  const old=P.c.VC;P.gz.splice(P.gz.indexOf(g),1);resetUnit(g);g.down=false;g.rest=old.rest;
  P.heart.push(old);P.c.VC=g;
- SFX.epic();showSummonCutin(g,"STRIDE GENERATION!");log(`${SIDE[s]}สไตรด์ ${cd(g).name} ทับ ${cd(old).name} (ทิ้ง ${pay.map(x=>cd(x).name).join(", ")})`);render();await pause(.6);
+ SFX.epic();VOICE.play("stride");showSummonCutin(g,"STRIDE GENERATION!");log(`${SIDE[s]}สไตรด์ ${cd(g).name} ทับ ${cd(old).name} (ทิ้ง ${pay.map(x=>cd(x).name).join(", ")})`);render();await pause(.6);
  for(const x of pay){if(G.over)break;await fire("discardStride",s,x,{where:"Drop"});if(!G.over&&P.drop.includes(x))await fire("discarded",s,x,{where:"Drop",phase:"ride"})}
  if(!G.over)await fire("gStride",s,old,{where:"VC",k:"VC"});
  if(!G.over)await fire("place_vc",s,g,{where:"VC",k:"VC",from:"gz"});
@@ -5249,7 +5659,7 @@ async function playOrder(s,u,alchB,fromZone){
    if(P.alchFree){items=items.filter(x=>x.t!=="sb");log("Alchemagic: ไม่ต้องจ่ายโซลบลาสต์ของออเดอร์นี้")}
    if(P.alchRed){for(const x of items)if(x.t==="cb"&&P.alchRed>0){const d=Math.min(x.n,P.alchRed);x.n-=d;P.alchRed-=d}items=items.filter(x=>!(x.t==="cb"&&x.n<=0));log("Alchemagic: ลดต้นทุนเคาน์เตอร์บลาสต์")}
    ab={...ab,steps:[...(items.length?[{t:"cost",items}]:[]),...ab.steps.slice(1)]};P.alchRed=0;P.alchFree=false}
-  showArchFX("alchemagic",{sub:`${c.name} + ${cd(alchB).name}`,noA:u.no,noB:alchB.no});log(`Alchemagic: รวม ${cd(alchB).name} (ไบนด์) เข้ากับ ${c.name}`)}}
+  VOICE.play("alch");showArchFX("alchemagic",{sub:`${c.name} + ${cd(alchB).name}`,noA:u.no,noB:alchB.no});log(`Alchemagic: รวม ${cd(alchB).name} (ไบนด์) เข้ากับ ${c.name}`)}}
  if(ab)await runAbility(ab,-1,ctx);
  await fire("orderput",s,u,{where:"Order"});
  if(!G.over&&cd(u).type==="Set Order")for(const[k,x]of units(s)){if(G.over)break;if(whereIs(x))await fire("setOrderPut",s,x,{where:k==="VC"?"VC":"RC",k})}
@@ -5364,7 +5774,7 @@ async function doAttack(a,ak,tk,useBoost=true){
  if(G.over){fin();return}
  const shieldNow=()=>PD.guard.reduce((t,u)=>t+guardShield(u,d),0)+B.extra;
  B.shield=shieldNow();
- if(PD.guard.length||B.extra){if(G.stats)G.stats.guard[d]+=PD.guard.length;SFX.guard();log(`${SIDE[d]}การ์ด: ชีลด์รวม ${B.shield}${tg.nohit?" + กันโดนไม่ได้ (Sentinel)":""}`)}else log(`${SIDE[d]}ไม่การ์ด`);
+ if(PD.guard.length||B.extra){if(G.stats)G.stats.guard[d]+=PD.guard.length;SFX.guard();if(tg.nohit)VOICE.play("pg");log(`${SIDE[d]}การ์ด: ชีลด์รวม ${B.shield}${tg.nohit?" + กันโดนไม่ได้ (Sentinel)":""}`)}else{VOICE.play("noguard");log(`${SIDE[d]}ไม่การ์ด`)}
  render();await pause(.9);
  // drive step (10.6) - vanguard or RG with Amartinoa
  if(ak==="VC"||PA.rgDrive||B.rgDriveThis){
@@ -5429,7 +5839,8 @@ async function applyTrigger(s,u,fromDrive,atk,revealed=false){
  NET.askSide=s;const c=cd(u),P=G.p[s];if(!c.trig)return;
  const t=c.trig,bot=G.cfg.bots[s];
  const oppNull=G.p[1-s].nullTrigIcons&&G.p[1-s].removed.some(x=>cd(x).trig===t);
- const pw=oppNull?0:(c.tpow||0);
+ const trigBonus=(!oppNull&&fromDrive)?((P.trigPowBonus||0)+(P.c.VC&&cd(P.c.VC).name.includes("Aquamarine")&&P.personaRode?10000:0)):0;
+ const pw=oppNull?0:((c.tpow||0)+trigBonus);
  if(oppNull)log(`Evil Eye ของ${SIDE[1-s]}: ตัดการบวกพลังจากทริกเกอร์ ${t}!`);
  const times=(G.battle&&G.battle.doubleTrig&&fromDrive)?2:1;
  if(G.stats){G.stats.trig[s]++;if(t==="Critical")G.stats.crit[s]++;else if(t==="Heal")G.stats.heal[s]++;else if(t==="Over")G.stats.over[s]++}
@@ -5445,7 +5856,7 @@ async function applyTrigger(s,u,fromDrive,atk,revealed=false){
   }
   return(await chooseUnit(s,title,us))||P.c.VC;
  };
- const tKey=t.toLowerCase();if(!revealed){if(t==="Over"){SFX.epic();showCutin("OVER TRIGGER!",`${c.name} · +100,000,000`,"over")}else{SFX.trigger();showCutin(`${t.toUpperCase()} TRIGGER!`,`${c.name}${pw?` · +${pw.toLocaleString()}`:""}`,CI_STYLE[tKey]?tKey:"crit")}}
+ const tKey=t.toLowerCase();const vMap={Critical:"crit",Front:"front",Draw:"draw",Heal:"heal",Over:"over"};if(vMap[t])VOICE.play(vMap[t]);if(!revealed){if(t==="Over"){SFX.epic();showCutin("OVER TRIGGER!",`${c.name} · +100,000,000`,"over")}else{SFX.trigger();showCutin(`${t.toUpperCase()} TRIGGER!`,`${c.name}${pw?` · +${pw.toLocaleString()}`:""}`,CI_STYLE[tKey]?tKey:"crit")}}
  log(`ทริกเกอร์! ${c.name} (${t}${pw?` +${pw}`:""})`);render();
  if(t==="Critical"&&fromDrive){for(let ti=0;ti<times;ti++){const x=await pick(`ทริกเกอร์ Critical (${ti+1}/${times}): เลือกยูนิตที่ได้คริติคอล +1`);if(x)x.cr+=1}}
  if(t==="Draw"){draw(s,times);log(`${SIDE[s]}จั่ว ${times} ใบ${times>1?" (ทริกเกอร์ 2 เท่า)":""}`)}
@@ -5515,7 +5926,7 @@ function revealCheck(s,u,kind,idx,tot,prevList=[],fromNet=false){
 }
 async function driveCheck(s,att,idx=1,tot=1){
  const P=G.p[s];if(!P.deck.length){end(1-s,`${SIDE[s]}ไม่มีการ์ดในเด็ค`);return}
- const u=P.deck.shift(),c=cd(u);log(`${SIDE[s]}ไดรฟ์เช็ค (${idx}/${tot}): ${c.name}`);
+ const u=P.deck.shift(),c=cd(u);VOICE.play("drive");log(`${SIDE[s]}ไดรฟ์เช็ค (${idx}/${tot}): ${c.name}`);
  const prev=G.battle?(G.battle.driveCards=G.battle.driveCards||[]).slice():[];
  if(G.battle){if(c.trig)G.battle.driveTrigs++;if((c.grade||0)>G.battle.driveMaxGrade)G.battle.driveMaxGrade=c.grade||0;(G.battle.driveGrades=G.battle.driveGrades||[]).push(c.grade||0);G.battle.driveCards.push(u)}
  G.battle.trigZone=u;G.battle.trigSide=s;render();
@@ -5528,7 +5939,7 @@ async function driveCheck(s,att,idx=1,tot=1){
 }
 async function damageCheck(s){
  const P=G.p[s];if(!P.deck.length){end(1-s,`${SIDE[s]}ไม่มีการ์ดในเด็ค`);return}
- const u=P.deck.shift(),c=cd(u);log(`${SIDE[s]}ดาเมจเช็ค: ${c.name}`);
+ const u=P.deck.shift(),c=cd(u);VOICE.play("damage");log(`${SIDE[s]}ดาเมจเช็ค: ${c.name}`);
  if(G.battle){G.battle.trigZone=u;G.battle.trigSide=s}render();
  await revealCheck(s,u,"damage",1,1);if(G.over)return;
  await applyTrigger(s,u,false,null,true);if(G.over)return;
@@ -5998,7 +6409,7 @@ async function doOverDress(s,u,targets,circ){
  resetUnit(u);u.od=od;u.odType=d.x?"x":"over";
  const old=P.c[circ];if(old)moveCard(old,"drop");
  P.c[circ]=u;
- SFX.epic();showCutin(d.x?"XOVERDRESS!":"OVERDRESS!",cd(u).name,"dress");showArchFX("overdress");log(`${SIDE[s]} ${d.x?"XoverDress":"overDress"} ${cd(u).name} ทับ ${targets.map(t=>cd(t).name).join(" + ")} ที่ ${circ}`);render();
+ SFX.epic();showCutin(d.x?"XOVERDRESS!":"OVERDRESS!",cd(u).name,"dress");VOICE.play("overdress");showArchFX("overdress");log(`${SIDE[s]} ${d.x?"XoverDress":"overDress"} ${cd(u).name} ทับ ${targets.map(t=>cd(t).name).join(" + ")} ที่ ${circ}`);render();
  for(const t of targets){if(G.over)return;await fire("becameOD",s,t,{where:"OD",outer:u,k:circ})}
  await fire("place_rc",s,u,{where:"RC",k:circ,from:"hand",by:u.odType,phase:G.phase});
  for(const[k,x]of units(s)){if(G.over)break;if(x!==u&&whereIs(x))await fire("rgPlaced",s,x,{where:k==="VC"?"VC":"RC",k,src:u,by:u.odType})}
@@ -6407,7 +6818,7 @@ async function runStep(st,ctx,a){
   case"retireIt":{for(const x of ctx.it||[]){const w=whereIs(x);if(w){log(`${name}: รีไทร์ ${cd(x).name}`);moveCard(x,"drop");ctx.retired=true;ctx.retiredCount=(ctx.retiredCount||0)+1;if(w.s!==s){if(name.includes("Gandeeva"))showArchFX("gandeeva",{masques:name.includes("Masques")});P.oppRet=(P.oppRet||0)+1;for(const[k2,y]of units(s)){if(G.over)break;if(whereIs(y))await fire("oppRetire",s,y,{where:k2==="VC"?"VC":"RC",k:k2,phase:G.phase})}}else{P.myRet=(P.myRet||0)+1}if(!G.over&&w.k!=="VC")await fire("retire_rc",w.s,x,{where:"Drop"})}}return true}
   case"stand":{const tg=(st.who==="this"?[u]:(ctx.it||[]));for(const x of tg){const w=whereIs(x);x.rest=false;x.stoodByEff=true;if(w&&!G.over){await fire("standed",w.s,x,{where:w.k==="VC"?"VC":"RC",k:w.k});for(const[k2,y]of units(w.s)){if(G.over)break;if(whereIs(y))await fire("otherStand",w.s,y,{where:k2==="VC"?"VC":"RC",k:k2,src:x,srcK:w.k})}}}if(name.includes("Overlord"))showArchFX("overlord");else if(name.includes("Bastion"))showArchFX("bastion");log(`${name}: สแตนด์`);return true}
   case"rest":(ctx.it||[]).forEach(x=>{x.rest=true});return true;
-  case"standAll":{const L=units(s).filter(([k])=>(st.kind!=="rear-guards"||k!=="VC")&&(!st.row||(st.row==="front")===FRONT.includes(k))&&(!st.marker||P.mk[k]));L.forEach(([k,x])=>{x.rest=false;x.stoodByEff=true});log(`${name}: สแตนด์ยูนิต${st.row==="front"?"แถวหน้า":""}`);for(const[k,x]of L){if(G.over)break;if(whereIs(x))await fire("standed",s,x,{where:k==="VC"?"VC":"RC",k})}return true}
+  case"standAll":{const L=units(s).filter(([k,u2])=>(st.kind!=="rear-guards"||k!=="VC")&&(!st.row||(st.row==="front")===FRONT.includes(k))&&(!st.marker||P.mk[k])&&(st.grade==null||unitGrade(u2)===st.grade));L.forEach(([k,x])=>{x.rest=false;x.stoodByEff=true});log(`${name}: สแตนด์ยูนิต${st.row==="front"?"แถวหน้า":""}`);for(const[k,x]of L){if(G.over)break;if(whereIs(x))await fire("standed",s,x,{where:k==="VC"?"VC":"RC",k})}return true}
   case"self":if(whereIs(u)||P.guard.includes(u)){moveCard(u,st.to);log(`${name} → ${DEST[st.to]||st.to}`)}return true;
   case"selfCard":if(st.opt&&!(await yn(`ใส่ ${name} เข้าโซล?`)))return true;moveCard(u,st.to);return true;
   case"nohit":(ctx.it||[]).forEach(x=>x.nohit=true);if((ctx.it||[]).length)log(`${name}: ${cd(ctx.it[0]).name} กันโดนไม่ได้จนจบแบทเทิลนี้`);return true;
@@ -6417,6 +6828,46 @@ async function runStep(st,ctx,a){
   case"shuffle":shuf(P.deck);return true;
   case"state":{P.states[st.s]=true;if(st.s==="Final Burst")P.states["Final Rush"]=true;if(ctx.holdState)P.stateHold=true;SFX.epic();showCutin(st.s.toUpperCase()+"!",`${SIDE[s]}เข้าสู่สถานะ ${st.s}`,"state");log(`${SIDE[s]}เข้าสู่สถานะ "${st.s}"${ctx.holdState?" จนจบเทิร์นถัดไปของอีกฝ่าย":" จนจบเทิร์น"}`);if(st.s==="Final Burst")for(const[k,x]of units(s)){if(G.over)break;if(k!=="VC"&&whereIs(x))await fire("finalBurst",s,x,{where:"RC",k})}return true}
   case"noop":return true;
+  case"drawOpp":{draw(1-s,st.n||1);log(`${name}: ฝ่ายตรงข้ามจั่ว ${st.n||1} ใบ`);return true}
+  case"chooseBoosted":{if(G.battle&&G.battle.att){ctx.it=[G.battle.att]}return true}
+  case"chooseAll":{const ts=st.opp?1-s:s;ctx.it=units(ts).filter(([k])=>st.kind!=="rear-guards"||k!=="VC").map(x=>x[1]);return true}
+  case"chooseOppPerSoul":{const cnt=Math.floor(P.soul.length/(st.div||4));const L=units(1-s).filter(x=>x[0]!=="VC");if(!cnt||!L.length){ctx.it=[];return true}const pick=bot?L.slice(0,cnt).map(x=>x[1]):(await chooseCards(`${name}: เลือกเรียร์การ์ดอีกฝ่ายสูงสุด ${cnt} ใบ`,L.map(x=>x[1]),cnt,true))||[];ctx.it=pick;return true}
+  case"colRetireSelf":{const c0=ctx.k?COLOF[ctx.k]:null;if(c0)for(const[k2,x]of units(s).slice())if(k2!=="VC"&&COLOF[k2]===c0){moveCard(x,"drop");log(`${name}: รีไทร์ ${cd(x).name} ในแถวเดียวกัน`)}return true}
+  case"colRetireOpp":{const refU=st.ref==="this"?ctx.u:(ctx.it&&ctx.it[0]);const w=refU?whereIs(refU):null;if(w){const oc=w.s===s?({L:"R",R:"L",C:"C"})[COLOF[w.k]]:COLOF[w.k];for(const[k2,x]of units(1-s).slice())if(k2!=="VC"&&COLOF[k2]===oc){moveCard(x,"drop");P.oppRet=(P.oppRet||0)+1;log(`${name}: รีไทร์ ${cd(x).name} ในแถวเดียวกัน`)}}return true}
+  case"grantKwAll":{for(const[,x]of units(s))if(st.grade==null||unitGrade(x)===st.grade){x.kw=x.kw||{};x.kw[st.kw]=true}log(`${name}: ยูนิตเกรด ${st.grade} ทั้งหมดได้รับ "${st.kw}" จนจบเทิร์น`);return true}
+  case"lookOpenRC":{const openN=5-units(1-s).filter(x=>x[0]!=="VC").length;if(openN<=0||!P.deck.length)return true;return await runStep({t:"look",n:openN,assist:true,text:st.text||`Look at ${openN} cards from top of deck`},ctx,a)}
+  case"hexaorbTop":{const L=P.hand.filter(x=>cd(x).trig==="Critical"||cd(x).trig==="Front");if(!L.length)return true;const x=bot?L[0]:await chooseHandCard(s,`${name}: เลือก Critical/Front Trigger วางบนสุดของเด็ค`,false,L);if(x&&x!=="back"){moveCard(x,"deckTop");log(`${name}: วาง ${cd(x).name} ไว้บนสุดของเด็ค`)}return true}
+  case"ergerOD":{const tk=units(s).find(([k,x])=>k!=="VC"&&cd(x).name==="Trickstar");if(!tk||!P.hand.includes(u))return true;const[circ,t]=tk;P.hand.splice(P.hand.indexOf(u),1);resetUnit(u);u.od=[t,...(t.od||[])];u.odType="over";P.c[circ]=u;SFX.epic();VOICE.play("overdress");showArchFX("overdress");log(`${name}: overDress ทับ Trickstar ที่ ${circ} แบบสแตนด์!`);render();return true}
+  case"esperaOD":{const L=P.drop.filter(x=>cd(x).name==="Trickstar"||hasODAbility(x));if(!L.length)return true;L.forEach(x=>{P.drop.splice(P.drop.indexOf(x),1);u.od.push(x)});log(`${name}: ดึง ${L.length} ใบจากดรอปเข้าเป็น originalDress!`);render();return true}
+  case"tiersDriveTrig":{const B=G.battle;if(!B||!B.driveCards)return true;const hasT=t=>B.driveCards.some(x=>cd(x).trig===t);for(const tr of(st.tiers||[])){if((/Critical/i.test(tr.label)&&hasT("Critical"))||(/Front/i.test(tr.label)&&hasT("Front")))for(const sub of tr.steps)await runStep(sub,ctx,a)}return true}
+  case"scPerDmg":{const n=Math.floor(P.damage.length/(st.div||2))*(st.n||1);if(n>0)await runStep({t:"sc",n},ctx,a);return true}
+  case"freezeOppFront":{for(const[k2,x]of units(1-s))if(k2!=="VC"&&FRONT.includes(k2))x.cantStand=true;log(`${name}: เรียร์การ์ดแถวหน้าของอีกฝ่ายทั้งหมดไม่สามารถสแตนด์ในเทิร์นหน้า!`);return true}
+  case"chooseWorldHandDrop":{const L=[...P.hand,...P.drop].filter(x=>raceHas(x,"World"));if(!L.length){ctx.it=[];return true}const x=bot?L[0]:await chooseHandCard(s,`${name}: เลือกการ์ด World จากมือหรือดรอป`,false,L);ctx.it=x&&x!=="back"?[x]:[];return true}
+  case"orfistMasquesTokens":{const n=Math.max(1,ctx.varCount||ctx.orderDropCount||1);for(let i=0;i<n;i++){const c=await chooseCircle(s,`${name}: เลือกช่องคอล Shadow Army โทเคน (${i+1}/${n})`,false);if(!c)break;if(P.c[c])moveCard(P.c[c],"drop");P.c[c]=mkToken("Shadow Army");showArchFX("shadow");log(`${name}: คอล Shadow Army โทเคนที่ ${c}`)}render();return true}
+  case"tokenSelfRC":{if(ctx.k&&ctx.k!=="VC"){if(P.c[ctx.k])moveCard(P.c[ctx.k],"drop");const tk=mkToken(st.kind||"Shadow Army");if(st.rest)tk.rest=true;P.c[ctx.k]=tk;showArchFX("shadow");log(`${name}: คอล ${st.kind} โทเคนที่ ${ctx.k}${st.rest?" (เรสต์)":""}`);render()}return true}
+  case"nohitGradeLE":{if(G.battle&&unitGrade(G.battle.att)<=(st.g||2)){G.battle.tg.nohit=true;log(`${name}: การโจมตีจากเกรด ${st.g||2} หรือต่ำกว่าจะไม่โดน!`)}return true}
+  case"bothChooseRg":{const myL=units(s).filter(x=>x[0]!=="VC"),opL=units(1-s).filter(x=>x[0]!=="VC");ctx.it=[];if(myL.length){const x=bot?myL[0][1]:await chooseUnit(s,`${name}: เลือกเรียร์การ์ดของคุณ 1 ใบ`,myL);if(x)ctx.it.push(x)}if(opL.length){const y=G.cfg.bots[1-s]?opL[0][1]:await chooseUnit(1-s,`${name}: ฝ่ายตรงข้ามเลือกเรียร์การ์ด 1 ใบ`,opL);if(y)ctx.it.push(y)}return true}
+  case"trigPowBonus":{P.trigPowBonus=(P.trigPowBonus||0)+(st.n||5000);log(`${name}: พลังจากทริกเกอร์ไดรฟ์เช็คเทิร์นนี้ +${st.n||5000}!`);return true}
+  case"scBonusTurn":{P.scBonusTurn=(P.scBonusTurn||0)+(st.n||1);log(`${name}: เทิร์นนี้เวลา Soul-Charge จะได้เพิ่ม +${st.n||1} ใบ!`);return true}
+  case"rideSelf":{const w=whereIs(u);if(w)G.p[w.s].c[w.k]=null;else{for(const z of["hand","drop","soul","order","removed"]){const i=P[z].indexOf(u);if(i>=0){P[z].splice(i,1);break}}}const old=P.c.VC;if(old){resetUnit(old);P.soul.push(old)}resetUnit(u);if(st.rest)u.rest=true;P.c.VC=u;SFX.epic();showSummonCutin(u,"SUPERIOR RIDE!");log(`${name}: ไรด์ตัวเองลง (VC)${st.rest?" (เรสต์)":" (สแตนด์)"}!`);render();return true}
+  case"clearOppMarkers":{G.p[1-s].mk={};log(`${name}: ลบ Marker ทั้งหมดบน (RC) ของอีกฝ่าย!`);render();return true}
+  case"griphoOrderToken":{P.griphoToken=true;log(`${name}: วาง Gripho Eschatologui โทเคนลงโซนออเดอร์!`);return true}
+  case"chooseRideTrig":{const L=P.ride.filter(x=>!!cd(x).trig);if(L.length){const x=L[0];ctx.it=[x];log(`${name}: เลือกทริกเกอร์ ${cd(x).name} จากไรด์เด็ค`)}return true}
+  case"drawPerVar":{const n=Math.floor((ctx.varCount||ctx.orderDropCount||0)/(st.div||2));if(n>0){draw(s,n);log(`${name}: จั่ว ${n} ใบ`)}return true}
+  case"orfistRegisTokens":{const n=Math.floor(P.order.filter(x=>raceHas(x,"World")).length/2);for(let i=0;i<n;i++){const c=await chooseCircle(s,`${name}: เลือกช่องคอล Shadow Army โทเคน (${i+1}/${n})`,false);if(!c)break;if(P.c[c])moveCard(P.c[c],"drop");P.c[c]=mkToken("Shadow Army");showArchFX("shadow");log(`${name}: คอล Shadow Army โทเคนที่ ${c}`)}render();return true}
+  case"fullBlastTiers":{const hasN=nm=>P.soul.some(x=>cd(x).name.includes(nm));if(hasN("Zest")){for(const[,x]of units(s))x.pw+=5000;log(`${name} (Zest): ยูนิตทั้งหมด +5000!`)}if(hasN("Gust")){u.cr+=1;log(`${name} (Gust): คริติคอล +1!`)}if(hasN("Tempest")){const L=units(1-s).filter(x=>x[0]!=="VC");if(L.length){const tg=bot?L[0][1]:await chooseUnit(s,`${name} (Tempest): เลือกเรียร์การ์ดอีกฝ่ายไว้ใต้เด็ค`,L);if(tg){moveCard(tg,"deckBottom");log(`${name} (Tempest): นำ ${cd(tg).name} ไว้ใต้เด็ค!`)}}}render();return true}
+  case"cantRideTurn":{P.cantRide=true;return true}
+  case"moveSelfToGC":{const w=whereIs(u);if(w&&G.battle){G.p[w.s].c[w.k]=null;u.rest=true;G.p[w.s].guard.push(u);log(`${name}: ย้ายตัวเองลง (GC) ช่วยป้องกัน!`);render()}return true}
+  case"oppFrontBottom":{for(const[k2,x]of units(1-s).slice())if(k2!=="VC"&&FRONT.includes(k2)){moveCard(x,"deckBottom");log(`${name}: ส่ง ${cd(x).name} แถวหน้าอีกฝ่ายไว้ใต้เด็ค!`)}return true}
+  case"scPerPrison":{const n=prisonCount(s)*(st.n||1);if(n>0)await runStep({t:"sc",n},ctx,a);return true}
+  case"oppReleasePrison":{const J=G.p[1-s].jail;for(let i=0;i<(st.n||1)&&J.length;i++){const x=J.shift();G.p[1-s].hand.push(x);log(`${name}: อีกฝ่ายนำ ${cd(x).name} จาก Prison ขึ้นมือ`)}render();return true}
+  case"retireAllOpp":{let cnt=0;for(const[k2,x]of units(1-s).slice()){if(k2==="VC")continue;if(st.row&&((st.row==="front")!==FRONT.includes(k2)))continue;moveCard(x,"drop");P.oppRet=(P.oppRet||0)+1;cnt++}log(`${name}: รีไทร์เรียร์การ์ด${st.row==="front"?"แถวหน้า":st.row==="back"?"แถวหลัง":""}ของอีกฝ่ายทั้งหมด (${cnt} ใบ)!`);render();return true}
+  case"oppFrontPowTo":{for(const[k2,x]of units(1-s)){if(FRONT.includes(k2)){const diff=(st.val||0)-unitPower(x);x.pw+=diff;queueFx(1-s,k2,"drop1")}}SFX.epic();showArchFX("drajeweled");log(`${name}: พลังยูนิตแถวหน้าของอีกฝ่ายทั้งหมดกลายเป็น ${st.val||0} จนจบเทิร์น!`);render();return true}
+  case"restArmsToSoul":{if(ctx.it&&ctx.it.length>1){for(const x of ctx.it.slice(1)){moveCard(x,"soul");log(`${name}: นำ ${cd(x).name} ที่เหลือเข้าโซล`)}}render();return true}
+  case"magnoliaExtra2":{if(!P.personaRode)return true;for(let i=0;i<2;i++){const L=units(s).filter(([k2,x])=>k2!=="VC"&&!x.backAtk);if(!L.length)break;const tg=bot?L[0][1]:await chooseUnit(s,`${name} (Persona Ride): เลือกเรียร์การ์ดเพิ่ม (${i+2}/3)`,L);if(!tg)break;tg.backAtk=true;tg.pw+=5000;log(`${name}: ${cd(tg).name} โจมตีจากแถวหลังได้ +5000!`)}render();return true}
+  case"oppTopToPrison":{const O=G.p[1-s];if(O.deck.length&&hasPrison(s)){const top=O.deck.shift();imprison(top,s);log(`${name}: อีกฝ่ายขังการ์ดบนสุดของเด็ค (${cd(top).name}) ใน Prison!`);render()}return true}
+  case"chooseToken":{const L=units(s).filter(([,x])=>x.no==="TK/"+st.kind);if(!L.length){ctx.it=[];return true}const tg=bot?L[0][1]:await chooseUnit(s,`${name}: เลือก ${st.kind} โทเคน 1 ใบ`,L);ctx.it=tg?[tg]:[];return true}
+  case"buffItPerDiffOrder":{const diff=new Set([...P.drop,...P.removed].filter(x=>!isUnit(x)).map(x=>cd(x).name)).size;const add=Math.floor(diff/(st.div||2))*(st.n||5000);if(add>0&&ctx.it)for(const x of ctx.it){x.pw+=add;log(`${name}: ${cd(x).name} +${add}`)}render();return true}
   case"getCrest":{P.crest=st.s;log(`${SIDE[s]}ได้รับ Crest: ${st.s}! (แถวหน้า +5000 ต่อ G ยูนิตที่หงายใน G โซน)`);return true}
   case"personaRide":{draw(s,1);P.persona=true;P.personaCount=(P.personaCount||0)+1;P.personaRode=true;if(G.stats)G.stats.persona[s]++;SFX.epic();showCutin("PERSONA RIDE!",`${name} · จั่ว 1 / แถวหน้า +10,000`,"persona");log(`${name}: เปิดใช้งาน Persona Ride (x${P.personaCount})! จั่ว 1 ใบ และแถวหน้า +10000 จนจบเทิร์น`);return true}
   case"lookResearch":{
@@ -7488,7 +7939,7 @@ function openPlay(){
  if(!CARDS.length){flash("ต้องโหลดข้อมูลการ์ดก่อน");return}
  const live=!!(G&&!G.over&&!G.quit);
  $("#play").hidden=false;$("#psetup").hidden=live;$("#pgame").hidden=!live;
- if(!live)buildSetup();else render();
+ if(!live){buildSetup();BGM.play(BGM_NATION._default,"base")}else render();
 }
 function buildSetup(){
  const ds=allDecks();
@@ -7517,7 +7968,20 @@ function buildSetup(){
  <label>ธีมสนาม (Dear Days Style)<select id="stTheme">${MAT_THEMES.map(([k,l])=>`<option value="${k}" ${k===curTheme?"selected":""}>${l}</option>`).join("")}</select></label>
  <label>หน้าตาสนาม<select id="stMat"><option value="1">สนามทางการ (Dear Days Playmat)</option><option value="0">แบบเรียบ (Compact)</option></select></label>
  <label id="stSpdWrap">ความเร็วเกม<select id="stSpd"><option value="900">ช้า (ดูทัน)</option><option value="450" selected>ปกติ</option><option value="120">เร็วมาก</option></select></label>
+ <label id="stBgmWrap">🎵 เพลงประจำเด็คของคุณ (วางลิงก์ YouTube ได้ · เว้นว่าง = ใช้เพลงอัตโนมัติ)<input id="stBgm" placeholder="เช่น https://youtu.be/... (บันทึกผูกกับเด็คนี้)"></label>
  <div class="mbtn"><button id="stBack">กลับไปสร้างเด็ค</button><button id="stGo" class="big">เริ่มเกม</button></div><p id="stErr" class="err"></p></div>`;
+ const syncBgmInput=()=>{
+  const k=$("#stMe").value,el=$("#stBgm");
+  if(!el)return;
+  if(k.startsWith("u:")){const dk=S.decks[+k.slice(2)];el.disabled=false;el.value=(dk&&dk.bgm)||""}
+  else{el.disabled=true;el.value=""}
+ };
+ $("#stMe").onchange=syncBgmInput;
+ $("#stBgm").oninput=e=>{
+  const k=$("#stMe").value;
+  if(k.startsWith("u:")){const dk=S.decks[+k.slice(2)];if(dk){dk.bgm=e.target.value.trim();save()}}
+ };
+ syncBgmInput();
  const syncModeUI=()=>{
   const m=$("#stMode").value,isH=m==="online_host",isG=m==="online_guest",on=isH||isG;
   $("#stOpWrap").hidden=on;$("#netPanel").hidden=!on;$("#netJoinWrap").hidden=!isG;
@@ -8191,6 +8655,11 @@ function bindPlay(){
   netClose();$("#psetup").hidden=false;$("#pgame").hidden=true;buildSetup()};
  $("#pclose").onclick=()=>{BGM.stop();$("#play").hidden=true};
  $("#pbgm").onclick=()=>BGM.toggle();BGM.ui();
+ $("#pvoice").onclick=()=>VOICE.open();
+ $("#voiceBtn").onclick=()=>VOICE.open();
+ $("#fVoiceOne").onchange=async e=>{if(e.target.files[0]&&VOICE.uploadKey){await VOICE.setBlob(VOICE.uploadKey,e.target.files[0]);VOICE.play(VOICE.uploadKey,true);VOICE.renderModal()}e.target.value=""};
+ $("#fVoicePack").onchange=async e=>{if(e.target.files[0])await VOICE.importPack(e.target.files[0]);e.target.value=""};
+ VOICE.load();
  $("#pskin").onclick=openSkinMenu;
  $("#fMat0").onchange=e=>{if(e.target.files[0])saveSkin("mat0",e.target.files[0]);e.target.value=""};
  $("#fMat1").onchange=e=>{if(e.target.files[0])saveSkin("mat1",e.target.files[0]);e.target.value=""};
