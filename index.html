@@ -1307,6 +1307,15 @@ button,.ch,.cell,.tile,.mc,.zb{touch-action:manipulation;-webkit-tap-highlight-c
 }
 .ar-dzone .ar-mz:hover{border-color:#38bdf8;color:#fff}
 .ar-dzone .ar-mz.crest{border-color:#fbbf24;color:#fde047;background:rgba(69,26,3,.92)}
+.ar-dzone .ar-mz.mk{border-color:#34d399;color:#6ee7b7;background:rgba(6,78,59,.92);font-weight:900}
+.marker-card{
+ max-width:440px;margin:0 auto;padding:14px;border-radius:14px;
+ background:linear-gradient(155deg,#064e3b 0%,#0f172a 55%,#022c22 100%);
+ border:2px solid #34d399;box-shadow:0 0 28px rgba(52,211,153,.35);
+ display:flex;flex-direction:column;gap:8px;
+}
+.marker-card .crest-em{background:rgba(52,211,153,.16);border-color:rgba(52,211,153,.5)}
+.marker-card .crest-hd h3{color:#6ee7b7}
 
 /* Mobile adjustments */
 @media(max-width:919px){
@@ -6059,8 +6068,9 @@ async function applyTrigger(s,u,fromDrive,atk,revealed=false){
  const times=(G.battle&&G.battle.doubleTrig&&fromDrive)?2:1;
  if(G.stats){G.stats.trig[s]++;if(t==="Critical")G.stats.crit[s]++;else if(t==="Heal")G.stats.heal[s]++;else if(t==="Over")G.stats.over[s]++}
  const pick=async(title)=>{
-  const us=units(s);if(!us.length)return null;if(!fromDrive)return P.c.VC;
+  const us=units(s);if(!us.length)return null;
   if(bot){
+   if(!fromDrive)return P.c.VC;
    const standAtk=us.filter(([k,x])=>!x.rest&&k!=="VC"&&(FRONT.includes(k)||canBackAtk(x)));
    if(standAtk.length){
     standAtk.sort((p,q)=>(unitPower(q[1])+(boosterOf(s,q[0])?unitPower(boosterOf(s,q[0])):0))-(unitPower(p[1])+(boosterOf(s,p[0])?unitPower(boosterOf(s,p[0])):0)));
@@ -6068,6 +6078,7 @@ async function applyTrigger(s,u,fromDrive,atk,revealed=false){
    }
    return atk&&us.find(x=>x[1]===atk)?atk:us[0][1];
   }
+  if(us.length===1)return us[0][1];
   return(await chooseUnit(s,title,us))||P.c.VC;
  };
  const tKey=t.toLowerCase();const vMap={Critical:"crit",Front:"front",Draw:"draw",Heal:"heal",Over:"over"};if(vMap[t])VOICE.play(vMap[t]);try{VFX.triggerFX(t,s,"VC")}catch(e){}if(!revealed){if(t==="Over"){SFX.epic();showCutin("OVER TRIGGER!",`${c.name} · +100,000,000`,"over")}else{SFX.trigger();showCutin(`${t.toUpperCase()} TRIGGER!`,`${c.name}${pw?` · +${pw.toLocaleString()}`:""}`,CI_STYLE[tKey]?tKey:"crit")}}
@@ -8084,6 +8095,47 @@ function coinFlipPrompt(){
 }
 
 /* =====================  CREST DATABASE & ACTIONS  ===================== */
+const MARKERS={
+ "Dragontree":{
+  name:"Dragontree Marker",
+  emblem:"🌳",
+  en:[
+   '[CONT](RC): During your turn, if your vanguard has "Dragontree" or "Masques" in its card name, the unit on this circle gets [Power] +5000.',
+   '(A Dragontree Marker stays on the (RC) even if the unit on it leaves the circle. Up to one Dragontree Marker can be on each (RC).)'
+  ],
+  th:[
+   '[CONT](RC) ในเทิร์นของคุณ หากแวนการ์ดของคุณมีคำว่า "Dragontree" หรือ "Masques" ในชื่อการ์ด ยูนิตที่อยู่บนช่อง (RC) นี้จะได้รับ Power +5,000',
+   'หมายเหตุ: มาร์กเกอร์จะยังคงอยู่บนช่อง (RC) นั้นแม้ยูนิตจะออกจากสนาม และวางได้สูงสุด 1 อันต่อ 1 ช่อง (หากใช้ Magnolia Masques ยูนิตบนช่องที่มีมาร์กเกอร์จะได้รับ Power +10,000 และตีจากแถวหลังได้เพิ่มเติมด้วย)'
+  ]
+ }
+};
+function viewMarkers(s){
+ const P=G.p[s];
+ const active=CIRC.filter(k=>P.mk[k]);
+ const mk=MARKERS.Dragontree;
+ const vg=P.c.VC?cd(P.c.VC).name:"";
+ const buffOn=G.turn===s&&/Dragontree|Masques/.test(vg);
+ const m=$("#pmodal");
+ m.hidden=false;delete m.dataset.sheet;
+ m.innerHTML=`<div class="mbox">
+  <div class="marker-card">
+   <div class="crest-hd">
+    <div class="crest-em">${mk.emblem}</div>
+    <div>
+     <h3>${esc(mk.name)} (${SIDE[s]})</h3>
+     <small>Marker · วางอยู่ ${active.length} ช่อง${active.length?` (${active.join(", ")})`:""}</small>
+    </div>
+   </div>
+   <div class="crest-ab">
+    <div><b>สถานะปัจจุบัน:</b> ${buffOn?'<span style="color:#6ee7b7">⚡ ทำงานอยู่ (+5,000 Power)</span>':'<span style="color:var(--mute)">รอเงื่อนไข (เทิร์นเจ้าของ + VG มีคำว่า Dragontree/Masques)</span>'}</div>
+    ${mk.th.map(t=>`<div>• ${esc(t)}</div>`).join("")}
+    <div class="en">${mk.en.map(e=>`<div>${esc(e)}</div>`).join("")}</div>
+   </div>
+  </div>
+  <div class="mbtn"><button data-m="x" class="big">ปิด</button></div>
+ </div>`;
+ m.onclick=e=>{if(e.target.id==="pmodal"||e.target.closest("[data-m=x]")){m.hidden=true;m.innerHTML="";m.onclick=null}};
+}
 const CRESTS={
  "Chronojet Dragon":{
   emblem:"⚙",nation:"Dark States",
@@ -8378,6 +8430,7 @@ function matHTML(s){
   ${P.exile.length?`<button class="ar-mz exile" data-z="exile" data-s="${s}">OUT ${P.exile.length}</button>`:""}
   ${P.gz.length?`<button class="ar-mz" data-z="gz" data-s="${s}">G ${P.gz.filter(x=>!x.down).length}/${P.gz.length}</button>`:""}
   ${P.crest?`<button class="ar-mz crest ${crestReady?"ready":""}" data-crest="${s}">⚙ CREST</button>`:""}
+  ${Object.values(P.mk).filter(Boolean).length?`<button class="ar-mz mk" data-mk="${s}" title="ดูข้อมูล Dragontree Marker">🌳 DT ×${Object.values(P.mk).filter(Boolean).length}</button>`:""}
   ${G.p[1-s].jail.length||hasPrison(s)?`<button class="ar-mz crest" data-z="jail" data-s="${1-s}">คุก ${G.p[1-s].jail.length}</button>`:""}
   ${P.arms.length?`<button class="ar-mz crest" data-z="arms" data-s="${s}">ARMS ${P.arms.length}</button>`:""}
   ${P.scouted.length?`<button class="ar-mz crest" data-z="scouted" data-s="${s}">SCOUT ${P.scouted.length}</button>`:""}
@@ -8800,7 +8853,7 @@ async function cellAction(s,k,forceSide){
  if(G.phase==="battle"&&s===opp){
   const ub=G.useBoost;G.useBoost=true;
   await doAttack(me,f.k,k,ub);
-  if(G&&!G.over&&G.next&&G.phase==="battle"&&!CIRC.some(x=>{const y=G.p[me].c[x];return y&&!y.rest&&!y.locked&&(FRONT.includes(x)||canBackAtk(y))})){log("โจมตีครบทุกยูนิตแล้ว");G.next()}
+  if(G&&!G.over&&G.next&&G.phase==="battle"&&!CIRC.some(x=>{const y=G.p[me].c[x];return y&&!y.rest&&!y.locked&&(FRONT.includes(x)||canBackAtk(y))})){log("โจมตีครบทุกยูนิตแล้ว · กดจบเทิร์นเมื่อพร้อม");render()}
  }
 }
 function onPlayClick(e){
@@ -8808,6 +8861,7 @@ function onPlayClick(e){
  if(e.target.closest("#pmodal"))return;
  const ab=e.target.closest("[data-a]");if(ab){if(!ab.disabled)act(ab.dataset.a,ab);return}
  const cr=e.target.closest("[data-crest]");if(cr){viewCrest(+cr.dataset.crest);return}
+ const mkBtn=e.target.closest("[data-mk]");if(mkBtn){viewMarkers(+mkBtn.dataset.mk);return}
  const armEl=e.target.closest(".ar-arm[data-id]");if(armEl){manualMenu(+armEl.dataset.id);return}
  const zb=e.target.closest("[data-z]");if(zb){viewZone(+zb.dataset.s,zb.dataset.z);return}
  const ce=e.target.closest(".cell");
