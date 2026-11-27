@@ -5665,7 +5665,7 @@ async function doRide(s,u,from,disc,opts){
  for(const x of P.arms.slice()){const a=armSide(x);if(!a||a.name!==c.name)moveCard(x,"drop")}
  P.rodeThisTurn=true;if(opts.superior)P.rodeByEffTurn=true;P.rodeFromName=oc.name;if((oc.grade||0)===3)P.rodeFromG3=true;if((c.grade||0)>=3)P.rodeG3ThisTurn=true;
  pushFeed(s,persona?"PERSONA RIDE":"RIDE",c.name,u.no);log(`${SIDE[s]}ไรด์ ${c.name} (G${c.grade})${opts.superior?` ด้วยสกิล${opts.by==="revol"?" RevolDress":""}`:from==="ride"?` จากไรด์เด็ค ทิ้ง ${disc?cd(disc).name:"-"}`:" จากมือ"}`);
- if(persona){const oathV=P.order.some(x=>cd(x).name==="Oath of Vengeance, Thegrea")&&c.name.includes("Thegrea");draw(s,oathV?2:1);P.persona=true;P.personaCount=(P.personaCount||0)+1;P.personaRode=true;if(G.stats)G.stats.persona[s]++;SFX.epic();VOICE.play("persona");showSummonCutin(u,"PERSONA RIDE! · จั่ว 1 / แถวหน้า +10,000");log(`${SIDE[s]} Persona Ride (x${P.personaCount}): จั่ว 1 ใบ ยูนิตแถวหน้า +10000 จนจบเทิร์น`)}else if(opts.by==="revol"){SFX.epic();const fm=/Zest/i.test(c.name)?"zest":/Gust/i.test(c.name)?"gust":/Tempest/i.test(c.name)?"tempest":"full";showArchFX("revol",{form:fm});VOICE.play("revol");showSummonCutin(u,"REVOLDRESS!");BGM.triggerClimax(s,"RevolDress")}else if(c.name.includes("Thegrea")&&oc.name.includes("Thegrea")){SFX.epic();showArchFX("thegrea");showSummonCutin(u,"LIGHT & DARK RIDE!")}else if(c.name.includes("Masques")){SFX.epic();showSummonCutin(u,"MASQUES RIDE!")}else if((c.grade||0)>=3){SFX.epic();showSummonCutin(u,"VANGUARD RIDE!")}else SFX.ride();
+ if(persona){const oathV=P.order.some(x=>cd(x).name==="Oath of Vengeance, Thegrea")&&c.name.includes("Thegrea");draw(s,oathV?2:1);P.persona=true;P.personaCount=(P.personaCount||0)+1;P.personaRode=true;if(G.stats)G.stats.persona[s]++;SFX.epic();VOICE.play("persona");showSummonCutin(u,"PERSONA RIDE! · จั่ว 1 / แถวหน้า +10,000");log(`${SIDE[s]} Persona Ride (x${P.personaCount}): จั่ว 1 ใบ ยูนิตแถวหน้า +10000 จนจบเทิร์น`)}else if(opts.by==="revol"){SFX.epic();const isZeth=/(?:Zeth|Zest)/i.test(c.name);const fm=isZeth?"zest":/Gust/i.test(c.name)?"gust":/Tempest/i.test(c.name)?"tempest":"full";if(isZeth){u.cr=(u.cr||0)+1;log(`${c.name} (RevolDress): ได้รับ Critical +1 จนจบเทิร์น`)}showArchFX("revol",{form:fm});VOICE.play("revol");showSummonCutin(u,"REVOLDRESS!");BGM.triggerClimax(s,"RevolDress")}else if(c.name.includes("Thegrea")&&oc.name.includes("Thegrea")){SFX.epic();showArchFX("thegrea");showSummonCutin(u,"LIGHT & DARK RIDE!")}else if(c.name.includes("Masques")){SFX.epic();showSummonCutin(u,"MASQUES RIDE!")}else if((c.grade||0)>=3){SFX.epic();showSummonCutin(u,"VANGUARD RIDE!")}else SFX.ride();
  render();await pause(.5);
  if(from==="ride"&&disc)await fire("discarded",s,disc,{where:"Drop",phase:"ride"});
  await fire("rode",s,old,{where:"Soul",by:u});remind(s,old,"rodeUpon");
@@ -7690,7 +7690,7 @@ function showCutin(title,sub="",style="persona",fromNet=false){
  const[a,b,ln,gl]=CI_STYLE[style]||CI_STYLE.persona;
  el.hidden=false;
  el.innerHTML=`<div class="ci-bar" style="--ci-a:${a};--ci-b:${b};--ci-ln:${ln};--ci-gl:${gl}"><div class="ci-t">${esc(title)}</div>${sub?`<div class="ci-s">${esc(sub)}</div>`:""}</div>`;
- clearTimeout(ciTimer);ciTimer=setTimeout(()=>{el.hidden=true;el.innerHTML=""},920);
+ clearTimeout(ciTimer);ciTimer=setTimeout(()=>{el.hidden=true;el.innerHTML=""},Math.round(920*speedMult()*1.35));
 }
 
 const KEY_CHANTS=[
