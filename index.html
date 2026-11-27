@@ -5968,7 +5968,7 @@ async function doAttack(a,ak,tk,useBoost=true){
    else{log(`${cd(tg2).name} ถูกรีไทร์`);moveCard(tg2,"drop")}
   }
  }
- VFX.attackImpact(a,ak,d,tk,atkPow+(B.extra||0),unitCrit(att),anyHit);
+ try{VFX.attackImpact(a,ak,d,tk,A,unitCrit(att),anyHit)}catch(e){console.warn("vfx",e)}
  B.hit=anyHit;B.hitVg=hitVg;
  if(anyHit&&!G.over){
   if(PA.c[ak]===att){await fire("hit",a,att,{where:ak==="VC"?"VC":"RC",k:ak,tk:hitVg?"VC":tk,tg});remind(a,att,"hit",ak==="VC"?"VC":"RC")}
@@ -6997,7 +6997,7 @@ async function runStep(st,ctx,a){
   case"scPerDmg":{const n=Math.floor(P.damage.length/(st.div||2))*(st.n||1);if(n>0)await runStep({t:"sc",n},ctx,a);return true}
   case"freezeOppFront":{for(const[k2,x]of units(1-s))if(k2!=="VC"&&FRONT.includes(k2))x.cantStand=true;log(`${name}: เรียร์การ์ดแถวหน้าของอีกฝ่ายทั้งหมดไม่สามารถสแตนด์ในเทิร์นหน้า!`);return true}
   case"chooseWorldHandDrop":{const L=[...P.hand,...P.drop].filter(x=>raceHas(x,"World"));if(!L.length){ctx.it=[];return true}const x=bot?L[0]:await chooseHandCard(s,`${name}: เลือกการ์ด World จากมือหรือดรอป`,false,L);ctx.it=x&&x!=="back"?[x]:[];return true}
-  case"orfistMasquesTokens":{const n=Math.max(1,ctx.varCount||ctx.orderDropCount||1);for(let i=0;i<n;i++){const c=await chooseCircle(s,`${name}: เลือกช่องคอล Shadow Army โทเคน (${i+1}/${n})`,false);if(!c)break;if(P.c[c])moveCard(P.c[c],"drop");P.c[c]=mkToken("Shadow Army");showArchFX("shadow");log(`${name}: คอล Shadow Army โทเคนที่ ${c}`)}render();return true}
+  case"orfistMasquesTokens":{const n=Math.max(1,ctx.varCount||ctx.orderDropCount||1);for(let i=0;i<n;i++){const c=(bot?["BC","BL","BR","FL","FR"].find(x=>!P.c[x]):await pickCircle(s,`${name}: เลือกช่องคอล Shadow Army โทเคน (${i+1}/${n})`));if(!c)break;if(P.c[c])moveCard(P.c[c],"drop");P.c[c]=mkToken("Shadow Army");showArchFX("shadow");log(`${name}: คอล Shadow Army โทเคนที่ ${c}`)}render();return true}
   case"tokenSelfRC":{if(ctx.k&&ctx.k!=="VC"){if(P.c[ctx.k])moveCard(P.c[ctx.k],"drop");const tk=mkToken(st.kind||"Shadow Army");if(st.rest)tk.rest=true;P.c[ctx.k]=tk;showArchFX("shadow");log(`${name}: คอล ${st.kind} โทเคนที่ ${ctx.k}${st.rest?" (เรสต์)":""}`);render()}return true}
   case"nohitGradeLE":{if(G.battle&&unitGrade(G.battle.att)<=(st.g||2)){G.battle.tg.nohit=true;log(`${name}: การโจมตีจากเกรด ${st.g||2} หรือต่ำกว่าจะไม่โดน!`)}return true}
   case"bothChooseRg":{const myL=units(s).filter(x=>x[0]!=="VC"),opL=units(1-s).filter(x=>x[0]!=="VC");ctx.it=[];if(myL.length){const x=bot?myL[0][1]:await chooseUnit(s,`${name}: เลือกเรียร์การ์ดของคุณ 1 ใบ`,myL);if(x)ctx.it.push(x)}if(opL.length){const y=G.cfg.bots[1-s]?opL[0][1]:await chooseUnit(1-s,`${name}: ฝ่ายตรงข้ามเลือกเรียร์การ์ด 1 ใบ`,opL);if(y)ctx.it.push(y)}return true}
@@ -7008,7 +7008,7 @@ async function runStep(st,ctx,a){
   case"griphoOrderToken":{P.griphoToken=true;log(`${name}: วาง Gripho Eschatologui โทเคนลงโซนออเดอร์!`);return true}
   case"chooseRideTrig":{const L=P.ride.filter(x=>!!cd(x).trig);if(L.length){const x=L[0];ctx.it=[x];log(`${name}: เลือกทริกเกอร์ ${cd(x).name} จากไรด์เด็ค`)}return true}
   case"drawPerVar":{const n=Math.floor((ctx.varCount||ctx.orderDropCount||0)/(st.div||2));if(n>0){draw(s,n);log(`${name}: จั่ว ${n} ใบ`)}return true}
-  case"orfistRegisTokens":{const n=Math.floor(P.order.filter(x=>raceHas(x,"World")).length/2);for(let i=0;i<n;i++){const c=await chooseCircle(s,`${name}: เลือกช่องคอล Shadow Army โทเคน (${i+1}/${n})`,false);if(!c)break;if(P.c[c])moveCard(P.c[c],"drop");P.c[c]=mkToken("Shadow Army");showArchFX("shadow");log(`${name}: คอล Shadow Army โทเคนที่ ${c}`)}render();return true}
+  case"orfistRegisTokens":{const n=Math.floor(P.order.filter(x=>raceHas(x,"World")).length/2);for(let i=0;i<n;i++){const c=(bot?["BC","BL","BR","FL","FR"].find(x=>!P.c[x]):await pickCircle(s,`${name}: เลือกช่องคอล Shadow Army โทเคน (${i+1}/${n})`));if(!c)break;if(P.c[c])moveCard(P.c[c],"drop");P.c[c]=mkToken("Shadow Army");showArchFX("shadow");log(`${name}: คอล Shadow Army โทเคนที่ ${c}`)}render();return true}
   case"fullBlastTiers":{const hasN=nm=>P.soul.some(x=>cd(x).name.includes(nm));if(hasN("Zest")){for(const[,x]of units(s))x.pw+=5000;log(`${name} (Zest): ยูนิตทั้งหมด +5000!`)}if(hasN("Gust")){u.cr+=1;log(`${name} (Gust): คริติคอล +1!`)}if(hasN("Tempest")){const L=units(1-s).filter(x=>x[0]!=="VC");if(L.length){const tg=bot?L[0][1]:await chooseUnit(s,`${name} (Tempest): เลือกเรียร์การ์ดอีกฝ่ายไว้ใต้เด็ค`,L);if(tg){moveCard(tg,"deckBottom");log(`${name} (Tempest): นำ ${cd(tg).name} ไว้ใต้เด็ค!`)}}}render();return true}
   case"cantRideTurn":{P.cantRide=true;return true}
   case"moveSelfToGC":{const w=whereIs(u);if(w&&G.battle){G.p[w.s].c[w.k]=null;u.rest=true;G.p[w.s].guard.push(u);log(`${name}: ย้ายตัวเองลง (GC) ช่วยป้องกัน!`);render()}return true}
