@@ -8055,15 +8055,16 @@ function buildSetup(){
  <label id="stBgmWrap">🎵 เพลงประจำเด็คของคุณ (วางลิงก์ YouTube ได้ · เว้นว่าง = ใช้เพลงอัตโนมัติ)<input id="stBgm" placeholder="เช่น https://youtu.be/... (บันทึกผูกกับเด็คนี้)"></label>
  <div class="mbtn"><button id="stBack">กลับไปสร้างเด็ค</button><button id="stGo" class="big">เริ่มเกม</button></div><p id="stErr" class="err"></p></div>`;
  const syncBgmInput=()=>{
-  const k=$("#stMe").value,el=$("#stBgm");
-  if(!el)return;
-  if(k.startsWith("u:")){const dk=S.decks[+k.slice(2)];el.disabled=false;el.value=(dk&&dk.bgm)||""}
+  const sel=$("#stMy"),el=$("#stBgm");
+  if(!sel||!el)return;
+  const k=sel.value||"";
+  if(k.startsWith("d")){const dk=S.decks[+k.slice(1)];el.disabled=false;el.value=(dk&&dk.bgm)||""}
   else{el.disabled=true;el.value=""}
  };
- $("#stMe").onchange=syncBgmInput;
+ $("#stMy").onchange=syncBgmInput;
  $("#stBgm").oninput=e=>{
-  const k=$("#stMe").value;
-  if(k.startsWith("u:")){const dk=S.decks[+k.slice(2)];if(dk){dk.bgm=e.target.value.trim();save()}}
+  const k=$("#stMy").value||"";
+  if(k.startsWith("d")){const dk=S.decks[+k.slice(1)];if(dk){dk.bgm=e.target.value.trim();save()}}
  };
  syncBgmInput();
  const syncModeUI=()=>{
